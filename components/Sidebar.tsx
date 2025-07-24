@@ -30,10 +30,24 @@ export function Sidebar() {
   const { isCollapsed, toggleSidebar } = useSidebar()
 
   return (
-    <div className={cn(
-      "flex h-full flex-col gap-y-5 overflow-y-auto border-r bg-background pb-4 transition-all duration-300 ease-in-out",
-      isCollapsed ? "w-16 px-2" : "w-64 px-6"
-    )}>
+    <>
+      {/* Toggle button when sidebar is hidden */}
+      {isCollapsed && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          className="fixed left-2 top-4 z-50 h-8 w-8 hover:bg-muted bg-background border shadow-sm"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      )}
+      
+      {/* Sidebar */}
+      <div className={cn(
+        "flex h-full flex-col gap-y-5 overflow-y-auto border-r bg-background pb-4 transition-all duration-300 ease-in-out",
+        isCollapsed ? "w-0 overflow-hidden" : "w-64 px-6"
+      )}>
       {/* Header with toggle button */}
       <div className="flex h-16 shrink-0 items-center justify-between">
         <span className={cn(
@@ -93,5 +107,6 @@ export function Sidebar() {
         </ul>
       </nav>
     </div>
+    </>
   )
 }
