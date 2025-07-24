@@ -1,7 +1,8 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Search, Bell } from "lucide-react"
+import { Search } from "lucide-react"
+import { NotificationCenter } from "@/components/NotificationCenter"
 
 export function Header() {
   return (
@@ -15,10 +16,7 @@ export function Header() {
               <Search className="h-5 w-5" />
               <span className="sr-only">Search</span>
             </Button>
-            <Button variant="ghost" size="icon">
-              <Bell className="h-5 w-5" />
-              <span className="sr-only">Notifications</span>
-            </Button>
+            <NotificationCenter />
           </div>
         </div>
       </div>

@@ -32,7 +32,7 @@ import {
 } from 'lucide-react'
 import { Source, Module, WorkingDoc, SourceType } from '@/models/types'
 import Link from 'next/link'
-import { useToast } from '@/lib/use-toast'
+import { useEnhancedToast } from '@/lib/notifications/useEnhancedToast'
 import { LoadingState } from '@/components/LoadingStates'
 import { Progress } from '@/components/ui/progress'
 import { CollaborationCursors, CollaborationIndicator } from '@/components/CollaborationCursors'
@@ -107,7 +107,15 @@ export default function WorkingStudioPage() {
   const [aiProgress, setAiProgress] = useState(0)
   const [wordCount, setWordCount] = useState(0)
   const [isOnline, setIsOnline] = useState(true)
-  const { toast } = useToast()
+  const { 
+    saveNotification, 
+    citationNotification, 
+    aiNotification, 
+    exportNotification, 
+    connectionNotification,
+    success,
+    error
+  } = useEnhancedToast()
   const { isShortcutsOpen, openShortcuts, closeShortcuts } = useKeyboardShortcuts()
 
   // Tab management handlers
@@ -198,13 +206,13 @@ export default function WorkingStudioPage() {
     
     // Only show toast occasionally to avoid spam
     if (Math.random() < 0.3) {
-      toast({
-        title: "Auto-saved",
-        description: `${wordCount} words saved`,
+      saveNotification({
+        title: "Auto-guardado",
+        description: `${wordCount} palabras guardadas`,
         variant: "success"
       })
     }
-  }, [toast, isOnline, wordCount])
+  }, [saveNotification, isOnline, wordCount])
 
   const handleModuleToggle = useCallback(async (moduleId: string) => {
     const module = modules.find(m => m.id === moduleId)
@@ -218,17 +226,17 @@ export default function WorkingStudioPage() {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500))
     
-    toast({
-      title: module?.isEnabled ? "Module disabled" : "Module enabled",
-      description: `${module?.name} has been ${module?.isEnabled ? 'disabled' : 'enabled'}`,
-      variant: "success"
+    success({
+      title: module?.isEnabled ? "Módulo deshabilitado" : "Módulo habilitado",
+      description: `${module?.name} ha sido ${module?.isEnabled ? 'deshabilitado' : 'habilitado'}`,
+      category: 'system'
     })
 
     // Update progress
     if (!module?.isEnabled) {
       setProgress(prev => Math.min(prev + 5, 100))
     }
-  }, [modules, toast])
+  }, [modules, success])
 
   const handleInsertCitation = useCallback(async (source: Source) => {
     const citation = `[${source.title}](${source.url}) (${source.type})`
@@ -236,15 +244,15 @@ export default function WorkingStudioPage() {
     setContent(prev => prev + '\n\n' + citation)
     
     // Simulate insertion feedback
-    toast({
-      title: "Citation inserted",
-      description: `Added citation from ${source.domain}`,
+    citationNotification({
+      title: "Cita insertada",
+      description: `Agregada cita de ${source.domain}`,
       variant: "success"
     })
 
     // Trigger auto-save after insertion
     setTimeout(() => simulateAutoSave(), 1000)
-  }, [toast, simulateAutoSave])
+  }, [citationNotification, simulateAutoSave])
 
   const handleApplySuggestion = useCallback(async (suggestion: string) => {
     setIsAiProcessing(true)
@@ -273,9 +281,9 @@ export default function WorkingStudioPage() {
       setIsAiProcessing(false)
       setAiProgress(0)
       
-      toast({
-        title: "AI suggestion applied",
-        description: "Content has been intelligently integrated",
+      aiNotification({
+        title: "Sugerencia de IA aplicada",
+        description: "Contenido integrado inteligentemente",
         variant: "success"
       })
     }, 500)
@@ -283,22 +291,22 @@ export default function WorkingStudioPage() {
     // Update progress and trigger save
     setProgress(prev => Math.min(prev + 3, 100))
     setTimeout(() => simulateAutoSave(), 1500)
-  }, [toast, simulateAutoSave])
+  }, [aiNotification, simulateAutoSave])
 
   const handleResolveFlag = useCallback(async (flagId: string) => {
-    toast({
-      title: "Issue resolved",
-      description: "Quality check issue has been marked as resolved",
-      variant: "success"
+    success({
+      title: "Problema resuelto",
+      description: "El problema de control de calidad ha sido marcado como resuelto",
+      category: 'system'
     })
     
     setProgress(prev => Math.min(prev + 2, 100))
-  }, [toast])
+  }, [success])
 
   const handleExport = useCallback(async (options: any) => {
-    toast({
-      title: "Export started",
-      description: `Generating ${options.format} document...`,
+    exportNotification({
+      title: "Exportación iniciada",
+      description: `Generando documento ${options.format}...`,
       variant: "default"
     })
     
@@ -314,19 +322,20 @@ export default function WorkingStudioPage() {
     for (let i = 0; i < stages.length; i++) {
       const stage = stages[i]
       
-      toast({
-        title: "Exporting...",
+      exportNotification({
+        title: "Exportando...",
         description: `${stage.name} (${Math.round(((i + 1) / stages.length) * 100)}%)`,
-        variant: "default"
+        variant: "default",
+        showToast: false // Don't show individual stage toasts
       })
       
       await new Promise(resolve => setTimeout(resolve, stage.duration))
     }
     
     // Simulate file generation
-    toast({
-      title: "Export complete!",
-      description: `Your ${options.format} is ready for download`,
+    exportNotification({
+      title: "¡Exportación completa!",
+      description: `Tu archivo ${options.format} está listo para descargar`,
       variant: "success"
     })
     
@@ -337,7 +346,7 @@ export default function WorkingStudioPage() {
       link.download = `interview-prep.${options.format === 'pdf' ? 'pdf' : 'docx'}`
       link.click()
     }
-  }, [toast])
+  }, [exportNotification])
 
   const getStatusIcon = (status: Module['status']) => {
     switch (status) {
@@ -373,18 +382,18 @@ export default function WorkingStudioPage() {
       // Randomly simulate network issues (5% chance)
       if (Math.random() < 0.05) {
         setIsOnline(false)
-        toast({
-          title: "Connection lost",
-          description: "Attempting to reconnect...",
+        connectionNotification({
+          title: "Conexión perdida",
+          description: "Intentando reconectar...",
           variant: "destructive"
         })
         
         // Reconnect after 2-5 seconds
         setTimeout(() => {
           setIsOnline(true)
-          toast({
-            title: "Reconnected",
-            description: "Your work is being synced",
+          connectionNotification({
+            title: "Reconectado",
+            description: "Tu trabajo se está sincronizando",
             variant: "success"
           })
         }, 2000 + Math.random() * 3000)
@@ -392,7 +401,7 @@ export default function WorkingStudioPage() {
     }, 60000) // Check every minute
 
     return () => clearInterval(interval)
-  }, [toast])
+  }, [connectionNotification])
 
   // Demo content updates
   useEffect(() => {
