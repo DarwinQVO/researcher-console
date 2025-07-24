@@ -174,14 +174,14 @@ export default function WorkingStudioPage() {
   }
 
   const openModuleTab = (module: Module) => {
-    // Find any existing module tab (regardless of which module)
-    const existingModuleTab = tabs.find(tab => tab.type === 'module')
+    // Find any existing module or module gallery tab
+    const existingModuleTab = tabs.find(tab => tab.type === 'module' || tab.type === 'modules-gallery')
     
     if (existingModuleTab) {
-      // Replace the existing module tab with the new one
+      // Replace the existing module/gallery tab with the new module
       const newTab = createTab('module', module.name, module)
       setTabs(prev => prev.map(tab => 
-        tab.type === 'module' ? newTab : tab
+        (tab.type === 'module' || tab.type === 'modules-gallery') ? newTab : tab
       ))
       setActiveTabId(newTab.id)
     } else {
@@ -193,14 +193,14 @@ export default function WorkingStudioPage() {
   }
 
   const openSourceTab = (source: Source) => {
-    // Find any existing source tab (regardless of which source)
-    const existingSourceTab = tabs.find(tab => tab.type === 'source')
+    // Find any existing source or source gallery tab
+    const existingSourceTab = tabs.find(tab => tab.type === 'source' || tab.type === 'sources-gallery')
     
     if (existingSourceTab) {
-      // Replace the existing source tab with the new one
+      // Replace the existing source/gallery tab with the new source
       const newTab = createTab('source', source.title, source)
       setTabs(prev => prev.map(tab => 
-        tab.type === 'source' ? newTab : tab
+        (tab.type === 'source' || tab.type === 'sources-gallery') ? newTab : tab
       ))
       setActiveTabId(newTab.id)
     } else {
@@ -212,27 +212,41 @@ export default function WorkingStudioPage() {
   }
 
   const openModulesGallery = () => {
-    const existingTab = tabs.find(tab => tab.type === 'modules-gallery')
-    if (existingTab) {
-      setActiveTabId(existingTab.id)
-      return
-    }
+    // Find any existing module or gallery tab (same as individual modules)
+    const existingModuleTab = tabs.find(tab => tab.type === 'module' || tab.type === 'modules-gallery')
     
-    const newTab = createTab('modules-gallery', 'Galería de Módulos', { modules })
-    setTabs(prev => [...prev, newTab])
-    setActiveTabId(newTab.id)
+    if (existingModuleTab) {
+      // Replace the existing module/gallery tab with the gallery
+      const newTab = createTab('modules-gallery', 'Gallery Of Modules', { modules })
+      setTabs(prev => prev.map(tab => 
+        (tab.type === 'module' || tab.type === 'modules-gallery') ? newTab : tab
+      ))
+      setActiveTabId(newTab.id)
+    } else {
+      // Create new gallery tab if no module tab exists
+      const newTab = createTab('modules-gallery', 'Gallery Of Modules', { modules })
+      setTabs(prev => [...prev, newTab])
+      setActiveTabId(newTab.id)
+    }
   }
 
   const openSourcesGallery = () => {
-    const existingTab = tabs.find(tab => tab.type === 'sources-gallery')
-    if (existingTab) {
-      setActiveTabId(existingTab.id)
-      return
-    }
+    // Find any existing source or gallery tab (same as individual sources)
+    const existingSourceTab = tabs.find(tab => tab.type === 'source' || tab.type === 'sources-gallery')
     
-    const newTab = createTab('sources-gallery', 'Galería de Fuentes', { sources: docSources })
-    setTabs(prev => [...prev, newTab])
-    setActiveTabId(newTab.id)
+    if (existingSourceTab) {
+      // Replace the existing source/gallery tab with the gallery
+      const newTab = createTab('sources-gallery', 'Gallery Of Sources', { sources: docSources })
+      setTabs(prev => prev.map(tab => 
+        (tab.type === 'source' || tab.type === 'sources-gallery') ? newTab : tab
+      ))
+      setActiveTabId(newTab.id)
+    } else {
+      // Create new gallery tab if no source tab exists
+      const newTab = createTab('sources-gallery', 'Gallery Of Sources', { sources: docSources })
+      setTabs(prev => [...prev, newTab])
+      setActiveTabId(newTab.id)
+    }
   }
 
   // Force data refresh in demo mode when component mounts
