@@ -278,7 +278,7 @@ export function SourcesHub({ sources, onInsertCitation, onSourceClick, onOpenGal
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
-                    {detailSource.date}
+                    {detailSource.createdAt.toLocaleDateString()}
                   </span>
                   <span className="flex items-center gap-1">
                     <User className="h-3 w-3" />
@@ -289,10 +289,40 @@ export function SourcesHub({ sources, onInsertCitation, onSourceClick, onOpenGal
 
               {/* Source Content */}
               <div className="space-y-3">
-                <h4 className="font-medium">Content</h4>
-                <div className="text-sm leading-relaxed">
-                  {detailSource.summary || 'No content preview available'}
+                <h4 className="font-medium">URL</h4>
+                <div className="text-sm leading-relaxed break-all">
+                  <a 
+                    href={detailSource.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 underline"
+                  >
+                    {detailSource.url}
+                  </a>
                 </div>
+                
+                {detailSource.notes && (
+                  <>
+                    <h4 className="font-medium">Notes</h4>
+                    <div className="text-sm leading-relaxed">
+                      {detailSource.notes}
+                    </div>
+                  </>
+                )}
+                
+                {detailSource.metadata && Object.keys(detailSource.metadata).length > 0 && (
+                  <>
+                    <h4 className="font-medium">Metadata</h4>
+                    <div className="text-sm leading-relaxed">
+                      {Object.entries(detailSource.metadata).map(([key, value]) => (
+                        <div key={key} className="flex gap-2">
+                          <span className="font-medium capitalize">{key}:</span>
+                          <span>{String(value)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Actions */}
