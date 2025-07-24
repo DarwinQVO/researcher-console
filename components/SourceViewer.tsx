@@ -240,12 +240,12 @@ export function SourceViewer({ source, onBack, onInsertCitation }: SourceViewerP
           <span>{sourceTypeLabels[source.type]}</span>
           <span>•</span>
           <span>{source.createdAt.toLocaleDateString()}</span>
-          {!canEmbed && (
+          {previewMode === 'proxy' && (
             <>
               <span>•</span>
               <span className="flex items-center gap-1 text-amber-600">
                 <AlertTriangle className="h-3 w-3" />
-                Embedding restricted
+                Preview mode
               </span>
             </>
           )}
