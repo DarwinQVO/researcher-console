@@ -35,7 +35,7 @@ import Link from 'next/link'
 import { useEnhancedToast } from '@/lib/notifications/useEnhancedToast'
 import { LoadingState } from '@/components/LoadingStates'
 import { Progress } from '@/components/ui/progress'
-import { CollaborationCursors, CollaborationIndicator } from '@/components/CollaborationCursors'
+// Removed collaboration features
 import { KeyboardShortcuts, useKeyboardShortcuts } from '@/components/KeyboardShortcuts'
 import { SaveStatusIndicator } from '@/components/SaveStatusIndicator'
 import { 
@@ -92,6 +92,40 @@ export default function WorkingStudioPage() {
   const [isAiDrawerOpen, setIsAiDrawerOpen] = useState(false)
   const [isQcOverlayOpen, setIsQcOverlayOpen] = useState(false)
   const [isExportModalOpen, setIsExportModalOpen] = useState(false)
+
+  // Prevent overlay conflicts - close others when one opens
+  const handleAiDrawerToggle = () => {
+    setIsAiDrawerOpen(prev => {
+      const newState = !prev
+      if (newState) {
+        setIsQcOverlayOpen(false) // Close QC when opening AI
+        setIsExportModalOpen(false) // Close Export when opening AI
+      }
+      return newState
+    })
+  }
+
+  const handleQcOverlayToggle = () => {
+    setIsQcOverlayOpen(prev => {
+      const newState = !prev
+      if (newState) {
+        setIsAiDrawerOpen(false) // Close AI when opening QC
+        setIsExportModalOpen(false) // Close Export when opening QC
+      }
+      return newState
+    })
+  }
+
+  const handleExportModalToggle = () => {
+    setIsExportModalOpen(prev => {
+      const newState = !prev
+      if (newState) {
+        setIsAiDrawerOpen(false) // Close AI when opening Export
+        setIsQcOverlayOpen(false) // Close QC when opening Export
+      }
+      return newState
+    })
+  }
   const [activeModule, setActiveModule] = useState<Module | undefined>(
     docModules.find(m => m.status === 'active')
   )
@@ -455,21 +489,21 @@ export default function WorkingStudioPage() {
       // Command/Ctrl + E for export
       if ((event.metaKey || event.ctrlKey) && event.key === 'e') {
         event.preventDefault()
-        setIsExportModalOpen(true)
+        handleExportModalToggle()
         return
       }
       
       // Command/Ctrl + K for AI assist
       if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
         event.preventDefault()
-        setIsAiDrawerOpen(true)
+        handleAiDrawerToggle()
         return
       }
       
       // Command/Ctrl + Q for QC
       if ((event.metaKey || event.ctrlKey) && event.key === 'q') {
         event.preventDefault()
-        setIsQcOverlayOpen(true)
+        handleQcOverlayToggle()
         return
       }
       
@@ -483,7 +517,7 @@ export default function WorkingStudioPage() {
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [simulateAutoSave, openShortcuts])
+  }, [simulateAutoSave, openShortcuts, handleAiDrawerToggle, handleQcOverlayToggle, handleExportModalToggle])
 
   return (
     <ErrorBoundary>
@@ -500,14 +534,9 @@ export default function WorkingStudioPage() {
             <h1 className="text-lg font-semibold">{request?.guest || 'Loading...'} - Interview Prep</h1>
             <p className="text-sm text-muted-foreground">Working Document</p>
           </div>
-          <Badge variant="secondary">{request?.tier || 'standard'} Tier</Badge>
         </div>
         
         <div className="flex items-center gap-2">
-          {/* Collaboration Indicator Only */}
-          <div className="flex items-center gap-4 text-sm text-muted-foreground mr-4">
-            <CollaborationIndicator activeUsers={Math.floor(Math.random() * 3) + 1} />
-          </div>
           
           <Button variant="ghost" size="sm" onClick={simulateAutoSave} disabled={isSaving}>
             <Save className="h-4 w-4 mr-2" />
@@ -516,14 +545,14 @@ export default function WorkingStudioPage() {
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={() => setIsQcOverlayOpen(true)}
+            onClick={handleQcOverlayToggle}
           >
             <AlertCircle className="h-4 w-4 mr-2" />
             Quality Check
           </Button>
           <Button 
             size="sm"
-            onClick={() => setIsExportModalOpen(true)}
+            onClick={handleExportModalToggle}
           >
             <Share2 className="h-4 w-4 mr-2" />
             Export
@@ -542,7 +571,7 @@ export default function WorkingStudioPage() {
 
       {/* AI Processing Overlay */}
       {isAiProcessing && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-60 flex items-center justify-center">
           <div className="bg-background border rounded-lg p-6 shadow-lg max-w-sm w-full mx-4">
             <LoadingState 
               type="ai" 
@@ -745,8 +774,8 @@ export default function WorkingStudioPage() {
 
       {/* Floating Action Button for AI */}
       <button
-        onClick={() => setIsAiDrawerOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105 z-40"
+        onClick={handleAiDrawerToggle}
+        className="fixed bottom-6 right-6 w-14 h-14 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105 z-35"
       >
         <Wand2 className="h-6 w-6" />
       </button>
@@ -754,7 +783,7 @@ export default function WorkingStudioPage() {
       {/* AI Assist Drawer */}
       <AiAssistDrawer
         isOpen={isAiDrawerOpen}
-        onToggle={() => setIsAiDrawerOpen(!isAiDrawerOpen)}
+        onToggle={handleAiDrawerToggle}
         currentModule={activeModule}
         sources={docSources}
         onApplySuggestion={handleApplySuggestion}
@@ -776,8 +805,7 @@ export default function WorkingStudioPage() {
         onExport={handleExport}
       />
 
-      {/* Collaboration Cursors */}
-      <CollaborationCursors isEnabled={isOnline} />
+      {/* Collaboration features removed */}
       
       {/* Discrete Save Status Indicator - Fixed Position */}
       <div className="fixed bottom-4 left-4 z-30">

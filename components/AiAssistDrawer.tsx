@@ -67,7 +67,7 @@ export function AiAssistDrawer({
     <>
       {/* Toggle Button */}
       <motion.div
-        className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-40"
+        className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-35"
         initial={{ y: 100 }}
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -92,7 +92,7 @@ export function AiAssistDrawer({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed bottom-0 left-0 right-0 bg-background border-t shadow-xl z-50 h-[400px]"
+            className="fixed bottom-0 left-0 right-0 bg-background border-t shadow-xl z-45 h-[400px]"
           >
             <div className="container mx-auto p-4 h-full flex flex-col">
               {/* Header */}
