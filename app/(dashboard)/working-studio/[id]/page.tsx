@@ -97,7 +97,7 @@ export default function WorkingStudioPage() {
   
   // Tab system state
   const [tabs, setTabs] = useState<WorkingTab[]>([
-    createTab('editor', 'Document Editor', { content }, false)
+    createTab('editor', 'Editor de Documento', { content }, false)
   ])
   const [activeTabId, setActiveTabId] = useState(tabs[0]?.id || '')
   const [isSaving, setIsSaving] = useState(false)
@@ -137,27 +137,41 @@ export default function WorkingStudioPage() {
   }
 
   const openModuleTab = (module: Module) => {
-    const existingTab = tabs.find(tab => tab.type === 'module' && tab.data?.id === module.id)
-    if (existingTab) {
-      setActiveTabId(existingTab.id)
-      return
-    }
+    // Find any existing module tab (regardless of which module)
+    const existingModuleTab = tabs.find(tab => tab.type === 'module')
     
-    const newTab = createTab('module', module.name, module)
-    setTabs(prev => [...prev, newTab])
-    setActiveTabId(newTab.id)
+    if (existingModuleTab) {
+      // Replace the existing module tab with the new one
+      const newTab = createTab('module', module.name, module)
+      setTabs(prev => prev.map(tab => 
+        tab.type === 'module' ? newTab : tab
+      ))
+      setActiveTabId(newTab.id)
+    } else {
+      // Create new module tab if none exists
+      const newTab = createTab('module', module.name, module)
+      setTabs(prev => [...prev, newTab])
+      setActiveTabId(newTab.id)
+    }
   }
 
   const openSourceTab = (source: Source) => {
-    const existingTab = tabs.find(tab => tab.type === 'source' && tab.data?.id === source.id)
-    if (existingTab) {
-      setActiveTabId(existingTab.id)
-      return
-    }
+    // Find any existing source tab (regardless of which source)
+    const existingSourceTab = tabs.find(tab => tab.type === 'source')
     
-    const newTab = createTab('source', source.title, source)
-    setTabs(prev => [...prev, newTab])
-    setActiveTabId(newTab.id)
+    if (existingSourceTab) {
+      // Replace the existing source tab with the new one
+      const newTab = createTab('source', source.title, source)
+      setTabs(prev => prev.map(tab => 
+        tab.type === 'source' ? newTab : tab
+      ))
+      setActiveTabId(newTab.id)
+    } else {
+      // Create new source tab if none exists
+      const newTab = createTab('source', source.title, source)
+      setTabs(prev => [...prev, newTab])
+      setActiveTabId(newTab.id)
+    }
   }
 
   const openModulesGallery = () => {
@@ -167,7 +181,7 @@ export default function WorkingStudioPage() {
       return
     }
     
-    const newTab = createTab('modules-gallery', 'Modules Gallery', { modules })
+    const newTab = createTab('modules-gallery', 'Galería de Módulos', { modules })
     setTabs(prev => [...prev, newTab])
     setActiveTabId(newTab.id)
   }
@@ -179,7 +193,7 @@ export default function WorkingStudioPage() {
       return
     }
     
-    const newTab = createTab('sources-gallery', 'Sources Gallery', { sources: docSources })
+    const newTab = createTab('sources-gallery', 'Galería de Fuentes', { sources: docSources })
     setTabs(prev => [...prev, newTab])
     setActiveTabId(newTab.id)
   }
