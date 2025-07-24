@@ -39,8 +39,7 @@ export function useEnhancedToast() {
       originalToast({
         title,
         description,
-        variant,
-        duration
+        variant
       })
     }
 
@@ -48,7 +47,7 @@ export function useEnhancedToast() {
     if (persistToCenter) {
       addNotification({
         title,
-        description,
+        description: description || '',
         variant,
         category,
         actionText,
@@ -121,8 +120,8 @@ export function useToast() {
     // Add to notification center if requested
     if (persistToCenter) {
       enhancedToast({
-        title: originalProps.title || 'Notification',
-        description: originalProps.description,
+        title: String(originalProps.title || 'Notification'),
+        description: String(originalProps.description || ''),
         variant: originalProps.variant || 'default',
         category,
         showToast: false // Don't show toast again since we already showed it

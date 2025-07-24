@@ -222,8 +222,7 @@ export default function WorkingStudioPage() {
     if (Math.random() < 0.3) {
       saveNotification({
         title: "Auto-guardado",
-        description: `${wordCount} palabras guardadas`,
-        variant: "success"
+        description: `${wordCount} palabras guardadas`
       })
     }
   }, [saveNotification, isOnline, wordCount])
