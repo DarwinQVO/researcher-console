@@ -28,7 +28,9 @@ import {
   ToggleLeft,
   ToggleRight,
   Brain,
-  Wand2
+  Wand2,
+  Grid,
+  Image
 } from 'lucide-react'
 import { Source, Module, WorkingDoc, SourceType } from '@/models/types'
 import Link from 'next/link'
@@ -531,8 +533,7 @@ export default function WorkingStudioPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-lg font-semibold">{request?.guest || 'Loading...'} - Interview Prep</h1>
-            <p className="text-sm text-muted-foreground">Working Document</p>
+            <h1 className="text-lg font-semibold">{request?.guest || 'Loading...'}</h1>
           </div>
         </div>
         
@@ -598,9 +599,10 @@ export default function WorkingStudioPage() {
                 variant="ghost"
                 size="sm"
                 onClick={openModulesGallery}
-                className="text-xs"
+                className="text-xs flex items-center gap-1"
               >
-                Gallery
+                <Grid className="h-3 w-3" />
+                Gallery Of Modules
               </Button>
             </div>
             
@@ -660,6 +662,7 @@ export default function WorkingStudioPage() {
                   activeTabId={activeTabId}
                   onTabChange={handleTabChange}
                   onTabClose={handleTabClose}
+                  onAiAssistToggle={handleAiDrawerToggle}
                 >
                   {(tab) => {
                     switch (tab.type) {
@@ -672,15 +675,7 @@ export default function WorkingStudioPage() {
                                 <Badge variant="outline">{activeModule?.name || 'Select a module'}</Badge>
                               </div>
                               <div className="flex items-center gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => setIsAiDrawerOpen(true)}
-                                  className="text-purple-600 hover:text-purple-700"
-                                >
-                                  <Brain className="h-4 w-4 mr-1" />
-                                  AI Assist
-                                </Button>
+                                {/* AI Assist moved to tab level */}
                               </div>
                             </div>
                             <div className="flex-1 overflow-y-auto">
@@ -772,13 +767,7 @@ export default function WorkingStudioPage() {
         </Panel>
       </PanelGroup>
 
-      {/* Floating Action Button for AI */}
-      <button
-        onClick={handleAiDrawerToggle}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105 z-35"
-      >
-        <Wand2 className="h-6 w-6" />
-      </button>
+      {/* Floating Action Button removed - using brain icon instead */}
 
       {/* AI Assist Drawer */}
       <AiAssistDrawer
@@ -801,7 +790,7 @@ export default function WorkingStudioPage() {
       <ExportModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
-        documentTitle={`${request?.guest || 'Document'} - Interview Prep`}
+        documentTitle={request?.guest || 'Document'}
         onExport={handleExport}
       />
 

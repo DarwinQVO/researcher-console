@@ -28,7 +28,8 @@ import {
   FileText,
   Video,
   Mic,
-  Database
+  Database,
+  Image
 } from 'lucide-react'
 import { Source, SourceType } from '@/models/types'
 
@@ -117,9 +118,10 @@ export function SourcesHub({ sources, onInsertCitation, onSourceClick, onOpenGal
               variant="ghost"
               size="sm"
               onClick={onOpenGallery}
-              className="text-xs"
+              className="text-xs flex items-center gap-1"
             >
-              Gallery
+              <Image className="h-3 w-3" />
+              Gallery Of Sources
             </Button>
           )}
         </div>

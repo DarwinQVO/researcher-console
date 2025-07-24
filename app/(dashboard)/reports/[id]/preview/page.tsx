@@ -34,9 +34,11 @@ import {
   Settings,
   Split,
   Maximize,
-  Eye
+  Eye,
+  Brain
 } from "lucide-react"
 import { subjectMeta, quotes, timelineEvents, qaData, representations } from "@/lib/mock/steveJobs"
+import { AiAssistDrawer } from "@/components/AiAssistDrawer"
 
 // Generar contenido del reporte basado en los datos
 const generateReportContent = () => {
@@ -104,6 +106,16 @@ export default function ReportPreviewPage() {
   const [content, setContent] = useState("")
   const [viewMode, setViewMode] = useState<"edit" | "preview" | "split">("edit")
   const [isLoading, setIsLoading] = useState(true)
+  const [isAiDrawerOpen, setIsAiDrawerOpen] = useState(false)
+
+  const handleAiDrawerToggle = () => {
+    setIsAiDrawerOpen(prev => !prev)
+  }
+
+  const handleApplySuggestion = (suggestion: string) => {
+    setContent(prev => prev + '\n\n' + suggestion)
+    setIsAiDrawerOpen(false)
+  }
 
   useEffect(() => {
     // Simular carga de datos
@@ -147,7 +159,7 @@ export default function ReportPreviewPage() {
             <div className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
               <div>
-                <h1 className="font-semibold">Steve Jobs - Interview Prep</h1>
+                <h1 className="font-semibold">Steve Jobs</h1>
                 <p className="text-sm text-muted-foreground">Report Preview & Editor</p>
               </div>
             </div>
@@ -167,22 +179,35 @@ export default function ReportPreviewPage() {
 
         {/* View Mode Selector */}
         <div className="px-4 pb-4">
-          <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)}>
-            <TabsList>
-              <TabsTrigger value="edit" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                Edit Mode
-              </TabsTrigger>
-              <TabsTrigger value="preview" className="flex items-center gap-2">
-                <Eye className="h-4 w-4" />
-                Preview
-              </TabsTrigger>
-              <TabsTrigger value="split" className="flex items-center gap-2">
-                <Split className="h-4 w-4" />
-                Split View
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="flex items-center justify-between">
+            <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)}>
+              <TabsList>
+                <TabsTrigger value="edit" className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  Edit Mode
+                </TabsTrigger>
+                <TabsTrigger value="preview" className="flex items-center gap-2">
+                  <Eye className="h-4 w-4" />
+                  Preview
+                </TabsTrigger>
+                <TabsTrigger value="split" className="flex items-center gap-2">
+                  <Split className="h-4 w-4" />
+                  Split View
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+            
+            {/* AI Assist Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleAiDrawerToggle}
+              className="text-purple-600 hover:text-purple-700 flex items-center gap-1.5"
+            >
+              <Brain className="h-4 w-4" />
+              AI Assist
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -229,6 +254,14 @@ export default function ReportPreviewPage() {
           </div>
         )}
       </div>
+
+      {/* AI Assist Drawer */}
+      <AiAssistDrawer
+        isOpen={isAiDrawerOpen}
+        onToggle={handleAiDrawerToggle}
+        sources={[]} // Empty for reports view
+        onApplySuggestion={handleApplySuggestion}
+      />
     </motion.div>
   )
 }

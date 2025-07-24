@@ -65,24 +65,7 @@ export function AiAssistDrawer({
 
   return (
     <>
-      {/* Toggle Button */}
-      <motion.div
-        className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-35"
-        initial={{ y: 100 }}
-        animate={{ y: 0 }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      >
-        <Button
-          onClick={onToggle}
-          variant="default"
-          size="lg"
-          className="rounded-full shadow-lg flex items-center gap-2"
-        >
-          <Sparkles className="h-4 w-4" />
-          AI Assist
-          {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-        </Button>
-      </motion.div>
+      {/* Toggle Button removed - controlled from tab level */}
 
       {/* Drawer */}
       <AnimatePresence>
