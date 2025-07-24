@@ -627,7 +627,8 @@ export default function WorkingStudioPage() {
                   activeTabId={activeTabId}
                   onTabChange={handleTabChange}
                   onTabClose={handleTabClose}
-                  renderTabContent={(tab) => {
+                >
+                  {(tab) => {
                     switch (tab.type) {
                       case 'editor':
                         return (
@@ -697,7 +698,7 @@ export default function WorkingStudioPage() {
                         return <div className="p-4">Tab content not implemented</div>
                     }
                   }}
-                />
+                </WorkingStudioTabs>
               </ErrorBoundary>
             </Panel>
 
