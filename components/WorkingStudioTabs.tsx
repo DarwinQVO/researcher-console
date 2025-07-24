@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
-export type TabType = 'editor' | 'module' | 'source' | 'modules-gallery' | 'sources-gallery'
+export type TabType = 'editor' | 'module' | 'source' | 'source-viewer' | 'modules-gallery' | 'sources-gallery'
 
 export interface WorkingTab {
   id: string
@@ -126,6 +126,7 @@ export function createTab(
     editor: <FileText className="h-4 w-4" />,
     module: <Code className="h-4 w-4" />,
     source: <Book className="h-4 w-4" />,
+    'source-viewer': <Eye className="h-4 w-4" />,
     'modules-gallery': <Grid className="h-4 w-4" />,
     'sources-gallery': <Image className="h-4 w-4" />
   }

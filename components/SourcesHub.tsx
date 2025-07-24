@@ -41,6 +41,7 @@ interface SourcesHubProps {
   onInsertCitation: (source: Source) => void
   onSourceClick?: (source: Source) => void
   onOpenGallery?: () => void
+  onOpenViewer?: (source: Source) => void
   className?: string
 }
 
@@ -61,7 +62,7 @@ const sourceTypeLabels: Record<SourceType, string> = {
   'SD': 'Structured Data'
 }
 
-export function SourcesHub({ sources, onInsertCitation, onSourceClick, onOpenGallery, className = '' }: SourcesHubProps) {
+export function SourcesHub({ sources, onInsertCitation, onSourceClick, onOpenGallery, onOpenViewer, className = '' }: SourcesHubProps) {
   const [filter, setFilter] = useState('')
   const [typeFilter, setTypeFilter] = useState<SourceType | 'all'>('all')
   const [domainFilter, setDomainFilter] = useState<string>('all')
@@ -116,7 +117,10 @@ export function SourcesHub({ sources, onInsertCitation, onSourceClick, onOpenGal
     setSelectedSourceId(source.id)
     setDetailSource(source)
     setViewMode('detail')
-    // Don't call onSourceClick to avoid opening in tab
+    // Still call onSourceClick to maintain tab functionality if needed
+    if (onSourceClick) {
+      onSourceClick(source)
+    }
   }
 
   const handleBackToList = () => {
@@ -336,13 +340,23 @@ export function SourcesHub({ sources, onInsertCitation, onSourceClick, onOpenGal
                   <CornerDownLeft className="h-4 w-4 mr-2" />
                   Insert Citation
                 </Button>
+                {onOpenViewer && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onOpenViewer(detailSource)}
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2 rotate-180" />
+                    Open
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => window.open(detailSource.url, '_blank')}
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
-                  Open
+                  External
                 </Button>
               </div>
             </div>

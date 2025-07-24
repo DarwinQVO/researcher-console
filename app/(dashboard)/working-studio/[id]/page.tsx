@@ -14,6 +14,7 @@ import { ModulesGallery } from '@/components/ModulesGallery'
 import { SourcesGallery } from '@/components/SourcesGallery'
 import { ModuleDetailView } from '@/components/ModuleDetailView'
 import { SourceDetailView } from '@/components/SourceDetailView'
+import { SourceViewer } from '@/components/SourceViewer'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -206,6 +207,10 @@ export default function WorkingStudioPage() {
 
   const openSourcesGallery = () => {
     openSecondaryTab('sources-gallery', 'Gallery Of Sources', { sources: docSources })
+  }
+
+  const openSourceViewer = (source: Source) => {
+    openSecondaryTab('source-viewer', `View: ${source.title}`, source)
   }
 
   // Force data refresh in demo mode when component mounts
@@ -688,6 +693,14 @@ export default function WorkingStudioPage() {
                             onInsertCitation={() => handleInsertCitation(tab.data)}
                           />
                         )
+                      case 'source-viewer':
+                        return (
+                          <SourceViewer
+                            source={tab.data}
+                            onBack={() => handleTabClose(tab.id)}
+                            onInsertCitation={handleInsertCitation}
+                          />
+                        )
                       default:
                         return <div className="p-4">Tab content not implemented</div>
                     }
@@ -727,6 +740,7 @@ export default function WorkingStudioPage() {
               onInsertCitation={handleInsertCitation}
               onSourceClick={openSourceTab}
               onOpenGallery={openSourcesGallery}
+              onOpenViewer={openSourceViewer}
               className="h-full"
             />
           </ErrorBoundary>
