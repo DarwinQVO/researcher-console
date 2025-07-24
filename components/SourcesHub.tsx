@@ -114,12 +114,14 @@ export function SourcesHub({ sources, onInsertCitation, onSourceClick, onOpenGal
   }
 
   const handleSourceClick = (source: Source) => {
-    setSelectedSourceId(source.id)
-    setDetailSource(source)
-    setViewMode('detail')
-    // Still call onSourceClick to maintain tab functionality if needed
-    if (onSourceClick) {
-      onSourceClick(source)
+    // Always open in viewer for immediate preview
+    if (onOpenViewer) {
+      onOpenViewer(source)
+    } else {
+      // Fallback to detail view if no viewer handler
+      setSelectedSourceId(source.id)
+      setDetailSource(source)
+      setViewMode('detail')
     }
   }
 

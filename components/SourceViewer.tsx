@@ -44,56 +44,44 @@ const sourceTypeLabels: Record<SourceType, string> = {
 export function SourceViewer({ source, onBack, onInsertCitation }: SourceViewerProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
-  const [canEmbed, setCanEmbed] = useState(true)
   const [previewMode, setPreviewMode] = useState<'iframe' | 'proxy' | 'extract'>('iframe')
   const [extractedContent, setExtractedContent] = useState<any>(null)
+  const [attemptedMethods, setAttemptedMethods] = useState<Set<string>>(new Set())
 
   const Icon = getSourceIcon(source.type)
 
-  // Determine best preview method based on URL
-  useEffect(() => {
-    const determinePreviewMethod = async () => {
-      const url = source.url.toLowerCase()
-      
-      // Sites that typically block embedding but we can extract/proxy
-      const socialMediaDomains = [
-        'facebook.com',
-        'instagram.com',
-        'twitter.com',
-        'x.com',
-        'linkedin.com'
-      ]
-      
-      const videoSites = [
-        'youtube.com',
-        'youtu.be',
-        'vimeo.com'
-      ]
-      
-      const articleSites = [
-        'medium.com',
-        'substack.com',
-        'notion.so'
-      ]
-      
-      if (socialMediaDomains.some(domain => url.includes(domain))) {
-        setPreviewMode('proxy')
-        setCanEmbed(false)
-      } else if (videoSites.some(domain => url.includes(domain))) {
-        // Videos can usually be embedded with special handling
-        setPreviewMode('iframe')
-        setCanEmbed(true)
-      } else if (articleSites.some(domain => url.includes(domain))) {
-        setPreviewMode('extract')
-        setCanEmbed(false)
-      } else {
-        // Try iframe first, fallback to extract
-        setPreviewMode('iframe')
-        setCanEmbed(true)
-      }
+  // Smart preview method selection
+  const getInitialPreviewMethod = (url: string): 'iframe' | 'proxy' | 'extract' => {
+    const lowerUrl = url.toLowerCase()
+    
+    // Video sites - always try iframe first
+    if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be') || 
+        lowerUrl.includes('vimeo.com') || lowerUrl.includes('dailymotion.com')) {
+      return 'iframe'
     }
+    
+    // Social media - go straight to proxy
+    if (lowerUrl.includes('facebook.com') || lowerUrl.includes('instagram.com') || 
+        lowerUrl.includes('twitter.com') || lowerUrl.includes('x.com') || 
+        lowerUrl.includes('linkedin.com') || lowerUrl.includes('tiktok.com')) {
+      return 'proxy'
+    }
+    
+    // Article sites - try extract first
+    if (lowerUrl.includes('medium.com') || lowerUrl.includes('substack.com') || 
+        lowerUrl.includes('notion.so') || lowerUrl.includes('dev.to')) {
+      return 'extract'
+    }
+    
+    // Default: try iframe first
+    return 'iframe'
+  }
 
-    determinePreviewMethod()
+  // Initialize preview method
+  useEffect(() => {
+    const initialMethod = getInitialPreviewMethod(source.url)
+    setPreviewMode(initialMethod)
+    setAttemptedMethods(new Set([initialMethod]))
   }, [source.url])
 
   const handleIframeLoad = () => {
@@ -102,9 +90,19 @@ export function SourceViewer({ source, onBack, onInsertCitation }: SourceViewerP
   }
 
   const handleIframeError = () => {
-    setIsLoading(false)
-    setHasError(true)
-    setCanEmbed(false)
+    // Auto fallback to next method
+    setAttemptedMethods(prev => new Set([...prev, 'iframe']))
+    
+    if (!attemptedMethods.has('proxy')) {
+      setPreviewMode('proxy')
+      setIsLoading(true)
+    } else if (!attemptedMethods.has('extract')) {
+      setPreviewMode('extract')
+      setIsLoading(true)
+    } else {
+      setIsLoading(false)
+      setHasError(true)
+    }
   }
 
   const handleRefresh = () => {
@@ -126,20 +124,27 @@ export function SourceViewer({ source, onBack, onInsertCitation }: SourceViewerP
     return url
   }
 
-  // Generate proxy URL for screenshots
+  // Generate proxy URL for screenshots or embedded view
   const getProxyUrl = (url: string) => {
-    // Using multiple fallback services
-    const services = [
-      // Option 1: Screenshot via API
-      `https://image.thum.io/get/width/1024/crop/768/${url}`,
-      // Option 2: Google PageSpeed screenshot
-      `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?screenshot=true&url=${encodeURIComponent(url)}`,
-      // Option 3: Via our own API endpoint
-      `/api/screenshot?url=${encodeURIComponent(url)}`
-    ]
+    // For better embedding, we can use different strategies
+    const encodedUrl = encodeURIComponent(url)
     
-    // Return first option for now
-    return services[0]
+    // Special handling for specific sites
+    if (url.includes('twitter.com') || url.includes('x.com')) {
+      // Twitter embed
+      const tweetMatch = url.match(/status\/(\d+)/)
+      if (tweetMatch) {
+        return `https://platform.twitter.com/embed/Tweet.html?id=${tweetMatch[1]}`
+      }
+    }
+    
+    if (url.includes('instagram.com')) {
+      // Instagram embed 
+      return `https://www.instagram.com/p/${url.split('/p/')[1]?.split('/')[0]}/embed`
+    }
+    
+    // Default to screenshot service
+    return `https://image.thum.io/get/width/1024/crop/768/${url}`
   }
 
   // Extract content using our API
@@ -255,30 +260,15 @@ export function SourceViewer({ source, onBack, onInsertCitation }: SourceViewerP
           </div>
         )}
 
-        {/* Preview Mode Switch */}
-        {(hasError || !canEmbed) && (
-          <div className="absolute top-2 right-2 z-20 flex gap-2">
-            <Button
-              size="sm"
-              variant={previewMode === 'proxy' ? 'default' : 'outline'}
-              onClick={() => setPreviewMode('proxy')}
-            >
-              <ImageIcon className="h-4 w-4 mr-1" />
-              Screenshot
-            </Button>
-            <Button
-              size="sm"
-              variant={previewMode === 'extract' ? 'default' : 'outline'}
-              onClick={() => setPreviewMode('extract')}
-            >
-              <FileText className="h-4 w-4 mr-1" />
-              Extract
-            </Button>
+        {/* Auto-switching indicator */}
+        {isLoading && attemptedMethods.size > 1 && (
+          <div className="absolute top-2 right-2 z-20 bg-background/90 backdrop-blur-sm rounded-lg px-3 py-1.5 text-xs">
+            Trying {previewMode === 'proxy' ? 'screenshot' : previewMode === 'extract' ? 'content extraction' : 'direct embed'}...
           </div>
         )}
 
         {/* Content based on preview mode */}
-        {previewMode === 'iframe' && canEmbed && !hasError ? (
+        {previewMode === 'iframe' ? (
           // Standard iframe embedding
           <iframe
             src={source.url.includes('youtube.com') || source.url.includes('youtu.be') 
@@ -292,23 +282,59 @@ export function SourceViewer({ source, onBack, onInsertCitation }: SourceViewerP
             allowFullScreen
           />
         ) : previewMode === 'proxy' ? (
-          // Screenshot/proxy view
-          <div className="h-full overflow-auto p-4">
-            <div className="max-w-4xl mx-auto">
-              <img
+          // Screenshot/proxy/embed view
+          <div className="h-full overflow-auto">
+            {(source.url.includes('twitter.com') || source.url.includes('x.com') || 
+              source.url.includes('instagram.com')) ? (
+              // Try embedded view for social media
+              <iframe
                 src={getProxyUrl(source.url)}
-                alt={`Screenshot of ${source.title}`}
-                className="w-full border rounded-lg shadow-lg"
+                className="w-full h-full border-0"
                 onLoad={() => setIsLoading(false)}
                 onError={() => {
-                  setIsLoading(false)
-                  setHasError(true)
+                  // Fallback to screenshot
+                  const img = document.createElement('img')
+                  img.src = `https://image.thum.io/get/width/1024/crop/768/${source.url}`
+                  img.onload = () => setIsLoading(false)
+                  img.onerror = () => {
+                    setAttemptedMethods(prev => new Set([...prev, 'proxy']))
+                    if (!attemptedMethods.has('extract')) {
+                      setPreviewMode('extract')
+                      setIsLoading(true)
+                    } else {
+                      setIsLoading(false)
+                      setHasError(true)
+                    }
+                  }
                 }}
+                sandbox="allow-scripts allow-same-origin"
               />
-              <p className="text-xs text-muted-foreground text-center mt-2">
-                Screenshot preview - Click "Open External" for interactive view
-              </p>
-            </div>
+            ) : (
+              // Screenshot for other sites
+              <div className="p-4">
+                <div className="max-w-4xl mx-auto">
+                  <img
+                    src={getProxyUrl(source.url)}
+                    alt={`Preview of ${source.title}`}
+                    className="w-full border rounded-lg shadow-lg"
+                    onLoad={() => setIsLoading(false)}
+                    onError={() => {
+                      setAttemptedMethods(prev => new Set([...prev, 'proxy']))
+                      if (!attemptedMethods.has('extract')) {
+                        setPreviewMode('extract')
+                        setIsLoading(true)
+                      } else {
+                        setIsLoading(false)
+                        setHasError(true)
+                      }
+                    }}
+                  />
+                  <p className="text-xs text-muted-foreground text-center mt-2">
+                    Preview - Click "Open External" for full interactive view
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         ) : previewMode === 'extract' ? (
           // Extracted content view
