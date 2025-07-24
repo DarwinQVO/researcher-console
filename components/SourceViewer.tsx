@@ -91,7 +91,11 @@ export function SourceViewer({ source, onBack, onInsertCitation }: SourceViewerP
 
   const handleIframeError = () => {
     // Auto fallback to next method
-    setAttemptedMethods(prev => new Set([...prev, 'iframe']))
+    setAttemptedMethods(prev => {
+      const newSet = new Set(prev)
+      newSet.add('iframe')
+      return newSet
+    })
     
     if (!attemptedMethods.has('proxy')) {
       setPreviewMode('proxy')
@@ -297,7 +301,11 @@ export function SourceViewer({ source, onBack, onInsertCitation }: SourceViewerP
                   img.src = `https://image.thum.io/get/width/1024/crop/768/${source.url}`
                   img.onload = () => setIsLoading(false)
                   img.onerror = () => {
-                    setAttemptedMethods(prev => new Set([...prev, 'proxy']))
+                    setAttemptedMethods(prev => {
+                      const newSet = new Set(prev)
+                      newSet.add('proxy')
+                      return newSet
+                    })
                     if (!attemptedMethods.has('extract')) {
                       setPreviewMode('extract')
                       setIsLoading(true)
@@ -319,7 +327,11 @@ export function SourceViewer({ source, onBack, onInsertCitation }: SourceViewerP
                     className="w-full border rounded-lg shadow-lg"
                     onLoad={() => setIsLoading(false)}
                     onError={() => {
-                      setAttemptedMethods(prev => new Set([...prev, 'proxy']))
+                      setAttemptedMethods(prev => {
+                      const newSet = new Set(prev)
+                      newSet.add('proxy')
+                      return newSet
+                    })
                       if (!attemptedMethods.has('extract')) {
                         setPreviewMode('extract')
                         setIsLoading(true)
