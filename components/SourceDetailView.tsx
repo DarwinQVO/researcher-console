@@ -23,7 +23,7 @@ import {
   Tag
 } from 'lucide-react'
 import { useState } from 'react'
-import { useToast } from '@/lib/use-toast'
+import { useEnhancedToast } from '@/lib/notifications/useEnhancedToast'
 
 interface SourceDetailViewProps {
   source: Source
@@ -40,7 +40,7 @@ export function SourceDetailView({
 }: SourceDetailViewProps) {
   const [isEditingNotes, setIsEditingNotes] = useState(false)
   const [notes, setNotes] = useState(source.notes || '')
-  const { toast } = useToast()
+  const { success } = useEnhancedToast()
 
   const getSourceIcon = (type: string) => {
     switch (type) {
@@ -77,20 +77,22 @@ export function SourceDetailView({
   const handleSaveNotes = () => {
     onUpdate?.({ notes })
     setIsEditingNotes(false)
-    toast({
-      title: "Notes saved",
-      description: "Your notes have been updated successfully.",
-      variant: "success"
+    success({
+      title: "Notas guardadas",
+      description: "Tus notas han sido actualizadas exitosamente.",
+      category: 'save',
+      showToast: false // Don't show toast, only add to notification center
     })
   }
 
   const handleCopyCitation = () => {
     const citation = `[${source.title}](${source.url}) (${source.type})`
     navigator.clipboard.writeText(citation)
-    toast({
-      title: "Citation copied",
-      description: "The citation has been copied to your clipboard.",
-      variant: "success"
+    success({
+      title: "Cita copiada",
+      description: "La cita ha sido copiada al portapapeles.",
+      category: 'citation',
+      showToast: false // Don't show toast, only add to notification center
     })
   }
 
@@ -308,10 +310,11 @@ export function SourceDetailView({
                         size="sm"
                         onClick={() => {
                           navigator.clipboard.writeText(clip.text)
-                          toast({
-                            title: "Clip copied",
-                            description: "The clip text has been copied to your clipboard.",
-                            variant: "success"
+                          success({
+                            title: "Clip copiado",
+                            description: "El texto del clip ha sido copiado al portapapeles.",
+                            category: 'citation',
+                            showToast: false // Don't show toast, only add to notification center
                           })
                         }}
                       >

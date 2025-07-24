@@ -37,6 +37,7 @@ import { LoadingState } from '@/components/LoadingStates'
 import { Progress } from '@/components/ui/progress'
 import { CollaborationCursors, CollaborationIndicator } from '@/components/CollaborationCursors'
 import { KeyboardShortcuts, useKeyboardShortcuts } from '@/components/KeyboardShortcuts'
+import { SaveStatusIndicator } from '@/components/SaveStatusIndicator'
 import { 
   useEnterpriseDemoData,
   getEnterpriseRequestById, 
@@ -218,13 +219,8 @@ export default function WorkingStudioPage() {
     setLastSaved(new Date())
     setIsSaving(false)
     
-    // Only show toast occasionally to avoid spam
-    if (Math.random() < 0.3) {
-      saveNotification({
-        title: "Auto-guardado",
-        description: `${wordCount} palabras guardadas`
-      })
-    }
+    // Don't show toast for auto-save - handled by discrete indicator
+    // saveNotification removed to prevent spam
   }, [saveNotification, isOnline, wordCount])
 
   const handleModuleToggle = useCallback(async (moduleId: string) => {
@@ -508,28 +504,14 @@ export default function WorkingStudioPage() {
         </div>
         
         <div className="flex items-center gap-2">
-          {/* Save Status Indicator */}
+          {/* Collaboration Indicator Only */}
           <div className="flex items-center gap-4 text-sm text-muted-foreground mr-4">
-            {isSaving ? (
-              <>
-                <LoadingState type="save" />
-                <span>Saving...</span>
-              </>
-            ) : (
-              <>
-                <div className={`w-2 h-2 rounded-full ${
-                  isOnline ? 'bg-green-500' : 'bg-red-500'
-                }`} />
-                <span>Last saved {lastSaved.toLocaleTimeString()}</span>
-                <span className="text-xs">• {wordCount} words</span>
-              </>
-            )}
             <CollaborationIndicator activeUsers={Math.floor(Math.random() * 3) + 1} />
           </div>
           
           <Button variant="ghost" size="sm" onClick={simulateAutoSave} disabled={isSaving}>
             <Save className="h-4 w-4 mr-2" />
-            {isSaving ? 'Saving...' : 'Save'}
+            {isSaving ? 'Guardando...' : 'Guardar'}
           </Button>
           <Button 
             variant="ghost" 
@@ -796,6 +778,16 @@ export default function WorkingStudioPage() {
 
       {/* Collaboration Cursors */}
       <CollaborationCursors isEnabled={isOnline} />
+      
+      {/* Discrete Save Status Indicator - Fixed Position */}
+      <div className="fixed bottom-4 left-4 z-30">
+        <SaveStatusIndicator
+          isSaving={isSaving}
+          lastSaved={lastSaved}
+          isOnline={isOnline}
+          wordCount={wordCount}
+        />
+      </div>
       
         {/* Keyboard Shortcuts Help */}
         <KeyboardShortcuts isOpen={isShortcutsOpen} onClose={closeShortcuts} />

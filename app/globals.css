@@ -54,9 +54,37 @@
   * {
     @apply border-border;
   }
+  
+  html {
+    /* Fix zoom stability - prevent text size adjustments */
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    
+    /* Prevent zoom on mobile inputs */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    
+    /* Prevent zoom issues */
+    overflow-x: hidden;
+    min-width: 320px; /* Minimum width to prevent layout breaks */
+  }
+  
+  /* Re-enable selection for content areas */
+  main, article, section, div[contenteditable], textarea, input {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
   }
 }
 
@@ -151,4 +179,59 @@
   background-color: #fef08a;
   padding: 0.125rem;
   border-radius: 0.125rem;
+}
+
+/* Layout Stability and Zoom Fixes */
+@layer utilities {
+  .layout-stable {
+    /* Prevent layout shifts on zoom */
+    contain: layout style;
+    overflow-anchor: none;
+  }
+  
+  .zoom-stable {
+    /* Maintain consistent sizing across zoom levels */
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Responsive container queries for better adaptation */
+  .responsive-container {
+    container-type: inline-size;
+    width: 100%;
+    min-width: 0;
+  }
+  
+  /* Fix for sidebar transitions */
+  .sidebar-transition {
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                padding-right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: width, padding;
+  }
+  
+  /* Prevent text from overflowing in collapsed sidebar */
+  .text-clip {
+    text-overflow: clip;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  
+  /* Better mobile handling */
+  @media (max-width: 768px) {
+    .mobile-responsive {
+      font-size: 16px !important; /* Prevent zoom on iOS */
+      transform-origin: 0 0;
+    }
+  }
+}
+
+/* Override viewport meta issues */
+@viewport {
+  width: device-width;
+  initial-scale: 1;
+  minimum-scale: 1;
+  maximum-scale: 1;
+  user-scalable: no;
 }
