@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react'
-import { X, FileText, Grid, Code, Eye, Image, Book, Brain } from 'lucide-react'
+import { X, FileText, Grid, Code, Eye, Image, Book, Brain, AlertCircle } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -25,6 +25,7 @@ interface WorkingStudioTabsProps {
   onTabClose: (tabId: string) => void
   onTabAdd?: (tab: WorkingTab) => void
   onAiAssistToggle?: () => void
+  onQualityCheckToggle?: () => void
   children: (activeTab: WorkingTab) => React.ReactNode
 }
 
@@ -35,6 +36,7 @@ export function WorkingStudioTabs({
   onTabClose,
   onTabAdd,
   onAiAssistToggle,
+  onQualityCheckToggle,
   children
 }: WorkingStudioTabsProps) {
   const activeTab = tabs.find(tab => tab.id === activeTabId) || tabs[0]
@@ -76,9 +78,9 @@ export function WorkingStudioTabs({
             ))}
           </div>
           
-          {/* AI Assist Button */}
-          {onAiAssistToggle && (
-            <div className="px-3 py-2">
+          {/* AI Assist & Quality Check Buttons */}
+          <div className="flex items-center px-3 py-2 gap-2">
+            {onAiAssistToggle && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -88,8 +90,20 @@ export function WorkingStudioTabs({
                 <Brain className="h-4 w-4" />
                 AI Assist
               </Button>
-            </div>
-          )}
+            )}
+            
+            {onQualityCheckToggle && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onQualityCheckToggle}
+                className="text-amber-600 hover:text-amber-700 flex items-center gap-1.5"
+              >
+                <AlertCircle className="h-4 w-4" />
+                Quality Check
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 

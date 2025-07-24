@@ -132,9 +132,9 @@ export default function WorkingStudioPage() {
     docModules.find(m => m.status === 'active')
   )
   
-  // Tab system state
+  // Tab system state - Only 2 tabs maximum: Editor + one secondary tab
   const [tabs, setTabs] = useState<WorkingTab[]>([
-    createTab('editor', 'Editor de Documento', { content }, false)
+    createTab('editor', 'Document Editor', { content }, false)
   ])
   const [activeTabId, setActiveTabId] = useState(tabs[0]?.id || '')
   const [isSaving, setIsSaving] = useState(false)
@@ -173,80 +173,39 @@ export default function WorkingStudioPage() {
     }
   }
 
-  const openModuleTab = (module: Module) => {
-    // Find any existing module or module gallery tab
-    const existingModuleTab = tabs.find(tab => tab.type === 'module' || tab.type === 'modules-gallery')
+  const openSecondaryTab = (type: TabType, title: string, data: any) => {
+    // Find any existing secondary tab (everything except editor)
+    const existingSecondaryTab = tabs.find(tab => tab.type !== 'editor')
     
-    if (existingModuleTab) {
-      // Replace the existing module/gallery tab with the new module
-      const newTab = createTab('module', module.name, module)
+    if (existingSecondaryTab) {
+      // Replace the existing secondary tab with the new one
+      const newTab = createTab(type, title, data)
       setTabs(prev => prev.map(tab => 
-        (tab.type === 'module' || tab.type === 'modules-gallery') ? newTab : tab
+        tab.type !== 'editor' ? newTab : tab
       ))
       setActiveTabId(newTab.id)
     } else {
-      // Create new module tab if none exists
-      const newTab = createTab('module', module.name, module)
+      // Add new secondary tab (only if we don't have one)
+      const newTab = createTab(type, title, data)
       setTabs(prev => [...prev, newTab])
       setActiveTabId(newTab.id)
     }
+  }
+
+  const openModuleTab = (module: Module) => {
+    openSecondaryTab('module', module.name, module)
   }
 
   const openSourceTab = (source: Source) => {
-    // Find any existing source or source gallery tab
-    const existingSourceTab = tabs.find(tab => tab.type === 'source' || tab.type === 'sources-gallery')
-    
-    if (existingSourceTab) {
-      // Replace the existing source/gallery tab with the new source
-      const newTab = createTab('source', source.title, source)
-      setTabs(prev => prev.map(tab => 
-        (tab.type === 'source' || tab.type === 'sources-gallery') ? newTab : tab
-      ))
-      setActiveTabId(newTab.id)
-    } else {
-      // Create new source tab if none exists
-      const newTab = createTab('source', source.title, source)
-      setTabs(prev => [...prev, newTab])
-      setActiveTabId(newTab.id)
-    }
+    openSecondaryTab('source', source.title, source)
   }
 
   const openModulesGallery = () => {
-    // Find any existing module or gallery tab (same as individual modules)
-    const existingModuleTab = tabs.find(tab => tab.type === 'module' || tab.type === 'modules-gallery')
-    
-    if (existingModuleTab) {
-      // Replace the existing module/gallery tab with the gallery
-      const newTab = createTab('modules-gallery', 'Gallery Of Modules', { modules })
-      setTabs(prev => prev.map(tab => 
-        (tab.type === 'module' || tab.type === 'modules-gallery') ? newTab : tab
-      ))
-      setActiveTabId(newTab.id)
-    } else {
-      // Create new gallery tab if no module tab exists
-      const newTab = createTab('modules-gallery', 'Gallery Of Modules', { modules })
-      setTabs(prev => [...prev, newTab])
-      setActiveTabId(newTab.id)
-    }
+    openSecondaryTab('modules-gallery', 'Gallery Of Modules', { modules })
   }
 
   const openSourcesGallery = () => {
-    // Find any existing source or gallery tab (same as individual sources)
-    const existingSourceTab = tabs.find(tab => tab.type === 'source' || tab.type === 'sources-gallery')
-    
-    if (existingSourceTab) {
-      // Replace the existing source/gallery tab with the gallery
-      const newTab = createTab('sources-gallery', 'Gallery Of Sources', { sources: docSources })
-      setTabs(prev => prev.map(tab => 
-        (tab.type === 'source' || tab.type === 'sources-gallery') ? newTab : tab
-      ))
-      setActiveTabId(newTab.id)
-    } else {
-      // Create new gallery tab if no source tab exists
-      const newTab = createTab('sources-gallery', 'Gallery Of Sources', { sources: docSources })
-      setTabs(prev => [...prev, newTab])
-      setActiveTabId(newTab.id)
-    }
+    openSecondaryTab('sources-gallery', 'Gallery Of Sources', { sources: docSources })
   }
 
   // Force data refresh in demo mode when component mounts
@@ -558,14 +517,6 @@ export default function WorkingStudioPage() {
             {isSaving ? 'Guardando...' : 'Guardar'}
           </Button>
           <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={handleQcOverlayToggle}
-          >
-            <AlertCircle className="h-4 w-4 mr-2" />
-            Quality Check
-          </Button>
-          <Button 
             size="sm"
             onClick={handleExportModalToggle}
           >
@@ -677,6 +628,7 @@ export default function WorkingStudioPage() {
                   onTabChange={handleTabChange}
                   onTabClose={handleTabClose}
                   onAiAssistToggle={handleAiDrawerToggle}
+                  onQualityCheckToggle={handleQcOverlayToggle}
                 >
                   {(tab) => {
                     switch (tab.type) {
