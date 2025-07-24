@@ -12,7 +12,9 @@ import {
   Video,
   Mic,
   Database,
-  ArrowLeft
+  ArrowLeft,
+  Loader2,
+  Image as ImageIcon
 } from 'lucide-react'
 import { Source, SourceType } from '@/models/types'
 
@@ -43,16 +45,18 @@ export function SourceViewer({ source, onBack, onInsertCitation }: SourceViewerP
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
   const [canEmbed, setCanEmbed] = useState(true)
+  const [previewMode, setPreviewMode] = useState<'iframe' | 'proxy' | 'extract'>('iframe')
+  const [extractedContent, setExtractedContent] = useState<any>(null)
 
   const Icon = getSourceIcon(source.type)
 
-  // Check if URL can be embedded (basic heuristic)
+  // Determine best preview method based on URL
   useEffect(() => {
-    const checkEmbeddability = () => {
+    const determinePreviewMethod = async () => {
       const url = source.url.toLowerCase()
       
-      // Some sites that typically block embedding
-      const blockedDomains = [
+      // Sites that typically block embedding but we can extract/proxy
+      const socialMediaDomains = [
         'facebook.com',
         'instagram.com',
         'twitter.com',
@@ -60,11 +64,36 @@ export function SourceViewer({ source, onBack, onInsertCitation }: SourceViewerP
         'linkedin.com'
       ]
       
-      const isBlocked = blockedDomains.some(domain => url.includes(domain))
-      setCanEmbed(!isBlocked)
+      const videoSites = [
+        'youtube.com',
+        'youtu.be',
+        'vimeo.com'
+      ]
+      
+      const articleSites = [
+        'medium.com',
+        'substack.com',
+        'notion.so'
+      ]
+      
+      if (socialMediaDomains.some(domain => url.includes(domain))) {
+        setPreviewMode('proxy')
+        setCanEmbed(false)
+      } else if (videoSites.some(domain => url.includes(domain))) {
+        // Videos can usually be embedded with special handling
+        setPreviewMode('iframe')
+        setCanEmbed(true)
+      } else if (articleSites.some(domain => url.includes(domain))) {
+        setPreviewMode('extract')
+        setCanEmbed(false)
+      } else {
+        // Try iframe first, fallback to extract
+        setPreviewMode('iframe')
+        setCanEmbed(true)
+      }
     }
 
-    checkEmbeddability()
+    determinePreviewMethod()
   }, [source.url])
 
   const handleIframeLoad = () => {
@@ -87,6 +116,63 @@ export function SourceViewer({ source, onBack, onInsertCitation }: SourceViewerP
       iframe.src = iframe.src
     }
   }
+
+  // Generate YouTube embed URL
+  const getYouTubeEmbedUrl = (url: string) => {
+    const videoIdMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)
+    if (videoIdMatch) {
+      return `https://www.youtube.com/embed/${videoIdMatch[1]}`
+    }
+    return url
+  }
+
+  // Generate proxy URL for screenshots
+  const getProxyUrl = (url: string) => {
+    // Using multiple fallback services
+    const services = [
+      // Option 1: Screenshot via API
+      `https://image.thum.io/get/width/1024/crop/768/${url}`,
+      // Option 2: Google PageSpeed screenshot
+      `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?screenshot=true&url=${encodeURIComponent(url)}`,
+      // Option 3: Via our own API endpoint
+      `/api/screenshot?url=${encodeURIComponent(url)}`
+    ]
+    
+    // Return first option for now
+    return services[0]
+  }
+
+  // Extract content using our API
+  const extractContent = async () => {
+    setIsLoading(true)
+    try {
+      // This would call your backend API to extract content
+      const response = await fetch('/api/extract-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: source.url })
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setExtractedContent(data)
+        setHasError(false)
+      } else {
+        setHasError(true)
+      }
+    } catch (error) {
+      console.error('Failed to extract content:', error)
+      setHasError(true)
+    }
+    setIsLoading(false)
+  }
+
+  // Load content based on preview mode
+  useEffect(() => {
+    if (previewMode === 'extract' && !extractedContent) {
+      extractContent()
+    }
+  }, [previewMode])
 
   return (
     <div className="h-full flex flex-col bg-background">
@@ -159,71 +245,163 @@ export function SourceViewer({ source, onBack, onInsertCitation }: SourceViewerP
 
       {/* Content Area */}
       <div className="flex-1 relative">
-        {!canEmbed || hasError ? (
-          // Fallback when embedding is not possible
-          <div className="h-full flex flex-col items-center justify-center p-8 text-center">
-            <Globe className="h-12 w-12 text-muted-foreground mb-4" />
-            <h4 className="font-medium mb-2">Content Preview Not Available</h4>
-            <p className="text-sm text-muted-foreground mb-4 max-w-md">
-              {hasError 
-                ? "This website doesn't allow embedding. Click 'Open External' to view in a new tab."
-                : "This source cannot be embedded due to security restrictions."
-              }
-            </p>
-            <div className="space-y-2">
+        {/* Loading State */}
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-10">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-primary" />
+              <p className="text-sm text-muted-foreground">Loading content...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Preview Mode Switch */}
+        {(hasError || !canEmbed) && (
+          <div className="absolute top-2 right-2 z-20 flex gap-2">
+            <Button
+              size="sm"
+              variant={previewMode === 'proxy' ? 'default' : 'outline'}
+              onClick={() => setPreviewMode('proxy')}
+            >
+              <ImageIcon className="h-4 w-4 mr-1" />
+              Screenshot
+            </Button>
+            <Button
+              size="sm"
+              variant={previewMode === 'extract' ? 'default' : 'outline'}
+              onClick={() => setPreviewMode('extract')}
+            >
+              <FileText className="h-4 w-4 mr-1" />
+              Extract
+            </Button>
+          </div>
+        )}
+
+        {/* Content based on preview mode */}
+        {previewMode === 'iframe' && canEmbed && !hasError ? (
+          // Standard iframe embedding
+          <iframe
+            src={source.url.includes('youtube.com') || source.url.includes('youtu.be') 
+              ? getYouTubeEmbedUrl(source.url)
+              : source.url}
+            className="w-full h-full border-0"
+            onLoad={handleIframeLoad}
+            onError={handleIframeError}
+            sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allowFullScreen
+          />
+        ) : previewMode === 'proxy' ? (
+          // Screenshot/proxy view
+          <div className="h-full overflow-auto p-4">
+            <div className="max-w-4xl mx-auto">
+              <img
+                src={getProxyUrl(source.url)}
+                alt={`Screenshot of ${source.title}`}
+                className="w-full border rounded-lg shadow-lg"
+                onLoad={() => setIsLoading(false)}
+                onError={() => {
+                  setIsLoading(false)
+                  setHasError(true)
+                }}
+              />
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                Screenshot preview - Click "Open External" for interactive view
+              </p>
+            </div>
+          </div>
+        ) : previewMode === 'extract' ? (
+          // Extracted content view
+          <div className="h-full overflow-auto p-6">
+            {extractedContent ? (
+              <article className="max-w-3xl mx-auto prose prose-sm">
+                <h1>{extractedContent.title || source.title}</h1>
+                {extractedContent.author && (
+                  <p className="text-muted-foreground">By {extractedContent.author}</p>
+                )}
+                {extractedContent.publishedDate && (
+                  <p className="text-muted-foreground text-sm">
+                    {new Date(extractedContent.publishedDate).toLocaleDateString()}
+                  </p>
+                )}
+                {extractedContent.image && (
+                  <img
+                    src={extractedContent.image}
+                    alt={extractedContent.title}
+                    className="w-full rounded-lg mb-4"
+                  />
+                )}
+                <div dangerouslySetInnerHTML={{ __html: extractedContent.content || '' }} />
+              </article>
+            ) : (
+              // Simplified content preview
+              <div className="max-w-3xl mx-auto">
+                <div className="border rounded-lg p-6 bg-muted/10">
+                  <h2 className="font-semibold text-lg mb-2">{source.title}</h2>
+                  <p className="text-sm text-muted-foreground mb-4">{source.domain}</p>
+                  <div className="space-y-3">
+                    <div>
+                      <h3 className="font-medium mb-1">URL</h3>
+                      <a 
+                        href={source.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline text-sm break-all"
+                      >
+                        {source.url}
+                      </a>
+                    </div>
+                    {source.notes && (
+                      <div>
+                        <h3 className="font-medium mb-1">Notes</h3>
+                        <p className="text-sm">{source.notes}</p>
+                      </div>
+                    )}
+                    {source.metadata && Object.keys(source.metadata).length > 0 && (
+                      <div>
+                        <h3 className="font-medium mb-1">Metadata</h3>
+                        <div className="text-sm space-y-1">
+                          {Object.entries(source.metadata).map(([key, value]) => (
+                            <div key={key}>
+                              <span className="font-medium capitalize">{key}:</span> {String(value)}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-6 pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      onClick={() => window.open(source.url, '_blank')}
+                      className="w-full"
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      View Original Source
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          // Error fallback
+          <div className="h-full flex items-center justify-center p-8">
+            <div className="text-center max-w-md">
+              <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+              <h4 className="font-medium mb-2">Preview Error</h4>
+              <p className="text-sm text-muted-foreground mb-4">
+                Unable to load preview. Try a different preview mode or open externally.
+              </p>
               <Button
                 variant="outline"
                 onClick={() => window.open(source.url, '_blank')}
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
-                Open in New Tab
+                Open External
               </Button>
             </div>
-            
-            {/* Show source details as fallback */}
-            <div className="mt-8 w-full max-w-md">
-              <div className="border rounded-lg p-4 bg-muted/10">
-                <h5 className="font-medium mb-2">Source Details</h5>
-                <div className="space-y-2 text-sm">
-                  <div>
-                    <span className="font-medium">URL:</span>
-                    <div className="break-all text-blue-600">
-                      <a href={source.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                        {source.url}
-                      </a>
-                    </div>
-                  </div>
-                  {source.notes && (
-                    <div>
-                      <span className="font-medium">Notes:</span>
-                      <p className="text-muted-foreground">{source.notes}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
           </div>
-        ) : (
-          // Embedded iframe
-          <>
-            {isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-                <div className="text-center">
-                  <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2 text-primary" />
-                  <p className="text-sm text-muted-foreground">Loading content...</p>
-                </div>
-              </div>
-            )}
-            
-            <iframe
-              src={source.url}
-              className="w-full h-full border-0"
-              onLoad={handleIframeLoad}
-              onError={handleIframeError}
-              sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-              referrerPolicy="strict-origin-when-cross-origin"
-            />
-          </>
         )}
       </div>
     </div>
