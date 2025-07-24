@@ -35,6 +35,8 @@ import { Source, SourceType } from '@/models/types'
 interface SourcesHubProps {
   sources: Source[]
   onInsertCitation: (source: Source) => void
+  onSourceClick?: (source: Source) => void
+  onOpenGallery?: () => void
   className?: string
 }
 
@@ -55,7 +57,7 @@ const sourceTypeLabels: Record<SourceType, string> = {
   'SD': 'Structured Data'
 }
 
-export function SourcesHub({ sources, onInsertCitation, className = '' }: SourcesHubProps) {
+export function SourcesHub({ sources, onInsertCitation, onSourceClick, onOpenGallery, className = '' }: SourcesHubProps) {
   const [filter, setFilter] = useState('')
   const [typeFilter, setTypeFilter] = useState<SourceType | 'all'>('all')
   const [domainFilter, setDomainFilter] = useState<string>('all')
@@ -108,7 +110,19 @@ export function SourcesHub({ sources, onInsertCitation, className = '' }: Source
     <aside className={`w-80 border-l bg-background flex flex-col h-full ${className}`}>
       {/* Header */}
       <div className="p-4 border-b">
-        <h3 className="font-semibold text-lg mb-3">Sources Hub</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold text-lg">Sources Hub</h3>
+          {onOpenGallery && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onOpenGallery}
+              className="text-xs"
+            >
+              Gallery
+            </Button>
+          )}
+        </div>
         
         {/* Search */}
         <Input
@@ -170,7 +184,10 @@ export function SourcesHub({ sources, onInsertCitation, className = '' }: Source
                 <TableRow 
                   key={source.id}
                   className={`cursor-pointer hover:bg-muted/50 ${selectedSourceId === source.id ? 'bg-muted' : ''}`}
-                  onClick={() => setSelectedSourceId(source.id)}
+                  onClick={() => {
+                    setSelectedSourceId(source.id)
+                    onSourceClick?.(source)
+                  }}
                 >
                   <TableCell>
                     <Badge variant="outline" className="w-8 h-8 p-0 flex items-center justify-center">

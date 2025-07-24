@@ -9,6 +9,11 @@ import { SourcesHub } from '@/components/SourcesHub'
 import { AiAssistDrawer } from '@/components/AiAssistDrawer'
 import { QcOverlay } from '@/components/QcOverlay'
 import { ExportModal } from '@/components/ExportModal'
+import { WorkingStudioTabs, WorkingTab, createTab } from '@/components/WorkingStudioTabs'
+import { ModulesGallery } from '@/components/ModulesGallery'
+import { SourcesGallery } from '@/components/SourcesGallery'
+import { ModuleDetailView } from '@/components/ModuleDetailView'
+import { SourceDetailView } from '@/components/SourceDetailView'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -89,6 +94,12 @@ export default function WorkingStudioPage() {
   const [activeModule, setActiveModule] = useState<Module | undefined>(
     docModules.find(m => m.status === 'active')
   )
+  
+  // Tab system state
+  const [tabs, setTabs] = useState<WorkingTab[]>([
+    createTab('editor', 'Document Editor', { content }, false)
+  ])
+  const [activeTabId, setActiveTabId] = useState(tabs[0]?.id || '')
   const [isSaving, setIsSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date>(new Date())
   const [progress, setProgress] = useState(75) // Overall completion
@@ -98,6 +109,72 @@ export default function WorkingStudioPage() {
   const [isOnline, setIsOnline] = useState(true)
   const { toast } = useToast()
   const { isShortcutsOpen, openShortcuts, closeShortcuts } = useKeyboardShortcuts()
+
+  // Tab management handlers
+  const handleTabChange = (tabId: string) => {
+    setActiveTabId(tabId)
+  }
+
+  const handleTabClose = (tabId: string) => {
+    if (tabs.length <= 1) return // Don't close the last tab
+    const tabIndex = tabs.findIndex(tab => tab.id === tabId)
+    const newTabs = tabs.filter(tab => tab.id !== tabId)
+    setTabs(newTabs)
+    
+    // If we closed the active tab, switch to another one
+    if (activeTabId === tabId) {
+      const newActiveIndex = Math.max(0, tabIndex - 1)
+      setActiveTabId(newTabs[newActiveIndex]?.id || newTabs[0]?.id)
+    }
+  }
+
+  const openModuleTab = (module: Module) => {
+    const existingTab = tabs.find(tab => tab.type === 'module' && tab.data?.id === module.id)
+    if (existingTab) {
+      setActiveTabId(existingTab.id)
+      return
+    }
+    
+    const newTab = createTab('module', module.name, module)
+    setTabs(prev => [...prev, newTab])
+    setActiveTabId(newTab.id)
+  }
+
+  const openSourceTab = (source: Source) => {
+    const existingTab = tabs.find(tab => tab.type === 'source' && tab.data?.id === source.id)
+    if (existingTab) {
+      setActiveTabId(existingTab.id)
+      return
+    }
+    
+    const newTab = createTab('source', source.title, source)
+    setTabs(prev => [...prev, newTab])
+    setActiveTabId(newTab.id)
+  }
+
+  const openModulesGallery = () => {
+    const existingTab = tabs.find(tab => tab.type === 'modules-gallery')
+    if (existingTab) {
+      setActiveTabId(existingTab.id)
+      return
+    }
+    
+    const newTab = createTab('modules-gallery', 'Modules Gallery', { modules })
+    setTabs(prev => [...prev, newTab])
+    setActiveTabId(newTab.id)
+  }
+
+  const openSourcesGallery = () => {
+    const existingTab = tabs.find(tab => tab.type === 'sources-gallery')
+    if (existingTab) {
+      setActiveTabId(existingTab.id)
+      return
+    }
+    
+    const newTab = createTab('sources-gallery', 'Sources Gallery', { sources: docSources })
+    setTabs(prev => [...prev, newTab])
+    setActiveTabId(newTab.id)
+  }
 
   // Force data refresh in demo mode when component mounts
   useEffect(() => {
@@ -479,10 +556,20 @@ export default function WorkingStudioPage() {
         <Panel defaultSize={20} minSize={15} maxSize={30}>
           <ErrorBoundary>
             <aside className="h-full border-r bg-muted/30 p-4 overflow-y-auto">
-            <h3 className="font-semibold mb-4 flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Document Modules
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Document Modules
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={openModulesGallery}
+                className="text-xs"
+              >
+                Gallery
+              </Button>
+            </div>
             
             <div className="space-y-2">
               {modules.map((module) => (
@@ -491,7 +578,10 @@ export default function WorkingStudioPage() {
                   className={`p-3 rounded-lg border cursor-pointer transition-colors ${
                     activeModule?.id === module.id ? 'bg-background border-primary' : 'hover:bg-background/50'
                   }`}
-                  onClick={() => setActiveModule(module)}
+                  onClick={() => {
+                    setActiveModule(module)
+                    openModuleTab(module)
+                  }}
                 >
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
@@ -531,35 +621,84 @@ export default function WorkingStudioPage() {
           <PanelGroup direction="vertical">
             {/* Main Editor Panel */}
             <Panel defaultSize={70} minSize={50}>
-              <main className="h-full flex flex-col relative">
-                {/* Editor Toolbar */}
-                <div className="border-b px-4 py-2 flex items-center justify-between bg-muted/10">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>Working on:</span>
-                    <Badge variant="outline">{activeModule?.name || 'Select a module'}</Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setIsAiDrawerOpen(true)}
-                      className="text-purple-600 hover:text-purple-700"
-                    >
-                      <Brain className="h-4 w-4 mr-1" />
-                      AI Assist
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="flex-1 overflow-y-auto">
-                  <ErrorBoundary>
-                    <RichTextEditor
-                      content={content}
-                      onChange={setContent}
-                    />
-                  </ErrorBoundary>
-                </div>
-              </main>
+              <ErrorBoundary>
+                <WorkingStudioTabs
+                  tabs={tabs}
+                  activeTabId={activeTabId}
+                  onTabChange={handleTabChange}
+                  onTabClose={handleTabClose}
+                  renderTabContent={(tab) => {
+                    switch (tab.type) {
+                      case 'editor':
+                        return (
+                          <div className="h-full flex flex-col">
+                            <div className="border-b px-4 py-2 flex items-center justify-between bg-muted/10">
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <span>Working on:</span>
+                                <Badge variant="outline">{activeModule?.name || 'Select a module'}</Badge>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setIsAiDrawerOpen(true)}
+                                  className="text-purple-600 hover:text-purple-700"
+                                >
+                                  <Brain className="h-4 w-4 mr-1" />
+                                  AI Assist
+                                </Button>
+                              </div>
+                            </div>
+                            <div className="flex-1 overflow-y-auto">
+                              <RichTextEditor
+                                content={content}
+                                onChange={setContent}
+                              />
+                            </div>
+                          </div>
+                        )
+                      case 'modules-gallery':
+                        return (
+                          <ModulesGallery
+                            modules={tab.data?.modules || modules}
+                            onModuleClick={openModuleTab}
+                            onModuleToggle={handleModuleToggle}
+                          />
+                        )
+                      case 'sources-gallery':
+                        return (
+                          <SourcesGallery
+                            sources={tab.data?.sources || docSources}
+                            onSourceClick={openSourceTab}
+                            onInsertCitation={handleInsertCitation}
+                          />
+                        )
+                      case 'module':
+                        return (
+                          <ModuleDetailView
+                            module={tab.data}
+                            onToggle={() => handleModuleToggle(tab.data?.id)}
+                            onContentChange={(newContent) => {
+                              // Update the module content
+                              setModules(prev => prev.map(m => 
+                                m.id === tab.data?.id ? { ...m, content: newContent } : m
+                              ))
+                            }}
+                          />
+                        )
+                      case 'source':
+                        return (
+                          <SourceDetailView
+                            source={tab.data}
+                            onInsertCitation={() => handleInsertCitation(tab.data)}
+                          />
+                        )
+                      default:
+                        return <div className="p-4">Tab content not implemented</div>
+                    }
+                  }}
+                />
+              </ErrorBoundary>
             </Panel>
 
             {/* Vertical Resize Handle */}
@@ -591,6 +730,8 @@ export default function WorkingStudioPage() {
             <SourcesHub
               sources={docSources}
               onInsertCitation={handleInsertCitation}
+              onSourceClick={openSourceTab}
+              onOpenGallery={openSourcesGallery}
               className="h-full"
             />
           </ErrorBoundary>
