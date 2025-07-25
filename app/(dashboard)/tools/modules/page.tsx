@@ -12,7 +12,11 @@ import {
   Settings,
   Star,
   Clock,
-  Users
+  Users,
+  BarChart3,
+  TrendingUp,
+  FileText,
+  Eye
 } from "lucide-react"
 
 export default function ToolsModulesPage() {
@@ -24,12 +28,18 @@ export default function ToolsModulesPage() {
       description: "Comprehensive executive summary template with key insights and recommendations",
       category: "Templates",
       version: "2.1.0",
-      downloads: 1247,
-      rating: 4.8,
+      usedInReports: 45,
+      totalExtractions: 1247,
+      avgEffectiveness: 4.8,
       author: "Research Team",
       lastUpdated: "2 weeks ago",
       status: "active",
-      tags: ["summary", "executive", "template"]
+      tags: ["summary", "executive", "template"],
+      recentUsage: [
+        { reportId: "RPT-001", client: "TechCorp", date: "2 days ago" },
+        { reportId: "RPT-015", client: "StartupX", date: "1 week ago" },
+        { reportId: "RPT-023", client: "Global Analytics", date: "2 weeks ago" }
+      ]
     },
     {
       id: 2,
@@ -37,12 +47,17 @@ export default function ToolsModulesPage() {
       description: "Structured approach to market research and competitive analysis",
       category: "Frameworks",
       version: "1.5.2",
-      downloads: 892,
-      rating: 4.6,
+      usedInReports: 28,
+      totalExtractions: 892,
+      avgEffectiveness: 4.6,
       author: "Strategy Team",
       lastUpdated: "1 month ago",
       status: "active",
-      tags: ["market", "analysis", "framework"]
+      tags: ["market", "analysis", "framework"],
+      recentUsage: [
+        { reportId: "RPT-008", client: "TechCorp", date: "5 days ago" },
+        { reportId: "RPT-019", client: "Global Analytics", date: "2 weeks ago" }
+      ]
     },
     {
       id: 3,
@@ -50,12 +65,18 @@ export default function ToolsModulesPage() {
       description: "AI-powered tool to generate structured interview guides based on research objectives",
       category: "Generators",
       version: "3.0.1",
-      downloads: 2156,
-      rating: 4.9,
+      usedInReports: 67,
+      totalExtractions: 2156,
+      avgEffectiveness: 4.9,
       author: "AI Team",
       lastUpdated: "3 days ago",
       status: "featured",
-      tags: ["interview", "ai", "generator"]
+      tags: ["interview", "ai", "generator"],
+      recentUsage: [
+        { reportId: "RPT-025", client: "StartupX", date: "1 day ago" },
+        { reportId: "RPT-024", client: "TechCorp", date: "3 days ago" },
+        { reportId: "RPT-022", client: "Global Analytics", date: "5 days ago" }
+      ]
     },
     {
       id: 4,
@@ -63,12 +84,17 @@ export default function ToolsModulesPage() {
       description: "Collection of chart templates and visualization components for reports",
       category: "Tools",
       version: "1.8.5",
-      downloads: 734,
-      rating: 4.4,
+      usedInReports: 19,
+      totalExtractions: 734,
+      avgEffectiveness: 4.4,
       author: "Design Team",
       lastUpdated: "1 week ago",
       status: "active",
-      tags: ["visualization", "charts", "toolkit"]
+      tags: ["visualization", "charts", "toolkit"],
+      recentUsage: [
+        { reportId: "RPT-020", client: "Global Analytics", date: "4 days ago" },
+        { reportId: "RPT-017", client: "TechCorp", date: "1 week ago" }
+      ]
     }
   ]
 
@@ -131,30 +157,32 @@ export default function ToolsModulesPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Downloads</CardTitle>
+            <CardTitle className="text-sm font-medium">Used in Reports</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {modules.reduce((sum, m) => sum + m.downloads, 0).toLocaleString()}
+              {modules.reduce((sum, m) => sum + m.usedInReports, 0)}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Avg Rating</CardTitle>
+            <CardTitle className="text-sm font-medium">Avg Effectiveness</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(modules.reduce((sum, m) => sum + m.rating, 0) / modules.length).toFixed(1)}
+              {(modules.reduce((sum, m) => sum + m.avgEffectiveness, 0) / modules.length).toFixed(1)}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Categories</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Extractions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{categories.length - 1}</div>
+            <div className="text-2xl font-bold">
+              {modules.reduce((sum, m) => sum + m.totalExtractions, 0).toLocaleString()}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -191,15 +219,26 @@ export default function ToolsModulesPage() {
                   <span className="font-mono">{module.version}</span>
                 </div>
 
-                <div className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-1">
-                    <Download className="h-3 w-3" />
-                    {module.downloads.toLocaleString()}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Star className="h-3 w-3" />
-                    {module.rating}
-                  </span>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="flex items-center gap-1">
+                    <FileText className="h-3 w-3 text-blue-500" />
+                    <span className="text-muted-foreground">Reports:</span>
+                    <span className="font-medium">{module.usedInReports}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <BarChart3 className="h-3 w-3 text-green-500" />
+                    <span className="text-muted-foreground">Extractions:</span>
+                    <span className="font-medium">{module.totalExtractions.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Star className="h-3 w-3 text-yellow-500" />
+                    <span className="text-muted-foreground">Effectiveness:</span>
+                    <span className="font-medium">{module.avgEffectiveness}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3 text-purple-500" />
+                    <span className="text-muted-foreground">Active</span>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -218,10 +257,34 @@ export default function ToolsModulesPage() {
                   ))}
                 </div>
 
+                {/* Recent Usage */}
+                <div className="space-y-2">
+                  <div className="text-sm font-medium flex items-center gap-1">
+                    <Eye className="h-3 w-3" />
+                    Recent Usage
+                  </div>
+                  <div className="space-y-1">
+                    {module.recentUsage.slice(0, 2).map((usage, index) => (
+                      <div key={index} className="flex justify-between items-center text-xs">
+                        <span className="text-blue-600 hover:underline cursor-pointer">
+                          {usage.reportId}
+                        </span>
+                        <span className="text-muted-foreground">{usage.client}</span>
+                        <span className="text-muted-foreground">{usage.date}</span>
+                      </div>
+                    ))}
+                    {module.recentUsage.length > 2 && (
+                      <div className="text-xs text-muted-foreground">
+                        +{module.recentUsage.length - 2} more reports
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="flex gap-2 pt-2 border-t">
                   <Button size="sm" className="flex-1">
-                    <Download className="h-4 w-4 mr-2" />
-                    Use Module
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    View Analytics
                   </Button>
                   <Button size="sm" variant="outline">
                     <Settings className="h-4 w-4" />
