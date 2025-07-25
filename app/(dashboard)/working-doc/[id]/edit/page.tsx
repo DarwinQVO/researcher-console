@@ -476,7 +476,7 @@ export default function WorkingDocEditPage() {
                           return (
                             <SourcesGallery
                               sources={tab.data?.sources || currentSources}
-                              onSourceClick={openSourceTab}
+                              onSourceClick={openSourceViewer}
                               onInsertCitation={(source) => {
                                 setContent(prev => prev + `\n[${source.title}](${source.url})`)
                                 success({
@@ -586,7 +586,7 @@ export default function WorkingDocEditPage() {
                           category: 'system'
                         })
                       }}
-                      onSourceClick={openSourceTab}
+                      onSourceClick={openSourceViewer}
                       onAddSource={handleAddSource}
                       onOpenGallery={openSourcesGallery}
                       onOpenViewer={openSourceViewer}
