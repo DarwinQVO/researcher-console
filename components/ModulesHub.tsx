@@ -37,8 +37,7 @@ export function ModulesHub({
   const [activeModule, setActiveModule] = useState<Module | null>(null)
 
   const filteredModules = modules.filter(module =>
-    module.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    module.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    module.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const getStatusIcon = (status: Module['status']) => {
@@ -126,14 +125,8 @@ export function ModulesHub({
                 </Button>
               </div>
               
-              {module.description && (
-                <p className="text-xs text-muted-foreground mb-2">
-                  {module.description.slice(0, 80)}...
-                </p>
-              )}
-              
               <Badge variant="outline" className="text-xs">
-                {module.variant || module.category}
+                {module.variant}
               </Badge>
             </div>
           ))}

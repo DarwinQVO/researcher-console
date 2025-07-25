@@ -2,12 +2,15 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { RichTextEditor } from '@/components/RichTextEditor'
 import { QualityChecker } from '@/components/QualityChecker'
 import { AiAssistant } from '@/components/AiAssistant'
+import { ModulesHub } from '@/components/ModulesHub'
+import { SourcesHub } from '@/components/SourcesHub'
 import { SaveStatusIndicator } from '@/components/SaveStatusIndicator'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { 
@@ -277,11 +280,64 @@ export default function WorkingDocPage() {
           </div>
         </div>
 
-        {/* Tab Content */}
+        {/* Holy Trinity Layout with Tab Content */}
         <div className="flex-1 overflow-hidden">
-          <ErrorBoundary>
-            {renderTabContent()}
-          </ErrorBoundary>
+          <PanelGroup direction="horizontal" className="h-full">
+            {/* Left Panel - Modules */}
+            <Panel defaultSize={25} minSize={20} maxSize={35}>
+              <ModulesHub
+                className="h-full border-r"
+                modules={docModules}
+                onModuleClick={(module) => {
+                  // Handle module click
+                  success({
+                    title: "Module selected",
+                    description: `${module.name} is now active`,
+                    category: 'system'
+                  })
+                }}
+                onModuleToggle={(moduleId) => {
+                  // Handle module toggle
+                  success({
+                    title: "Module toggled",
+                    description: "Module status updated",
+                    category: 'system'
+                  })
+                }}
+              />
+            </Panel>
+            
+            <PanelResizeHandle className="w-1 bg-border hover:bg-primary/20 transition-colors cursor-col-resize" />
+
+            {/* Center Panel - Tab Content */}
+            <Panel defaultSize={50} minSize={40}>
+              <ErrorBoundary>
+                {renderTabContent()}
+              </ErrorBoundary>
+            </Panel>
+
+            <PanelResizeHandle className="w-1 bg-border hover:bg-primary/20 transition-colors cursor-col-resize" />
+
+            {/* Right Panel - Sources */}
+            <Panel defaultSize={25} minSize={20} maxSize={35}>
+              <SourcesHub
+                className="h-full border-l"
+                sources={docSources}
+                onInsertCitation={(source) => {
+                  setContent(prev => prev + `\n[${source.title}](${source.url})`)
+                  success({
+                    title: "Citation inserted",
+                    description: `Added citation from ${source.domain}`,
+                    category: 'system'
+                  })
+                }}
+                onSourceClick={(source) => {
+                  // Handle source click
+                  console.log('Source clicked:', source)
+                }}
+              />
+            </Panel>
+          </PanelGroup>
         </div>
 
         {/* Save Status Indicator */}

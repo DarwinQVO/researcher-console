@@ -40,6 +40,7 @@ export interface Module {
   isEnabled: boolean
   order: number
   content?: string
+  category?: string
   createdAt: Date
   updatedAt: Date
   clips?: Clip[]
