@@ -12,6 +12,12 @@ import { SaveStatusIndicator } from '@/components/SaveStatusIndicator'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { ModulesHubWithAdd } from '@/components/ModulesHubWithAdd'
 import { SourcesHubWithAdd } from '@/components/SourcesHubWithAdd'
+import { WorkingStudioTabs, WorkingTab, TabType as StudioTabType, createTab } from '@/components/WorkingStudioTabs'
+import { ModulesGallery } from '@/components/ModulesGallery'
+import { SourcesGallery } from '@/components/SourcesGallery'
+import { ModuleDetailView } from '@/components/ModuleDetailView'
+import { SourceDetailView } from '@/components/SourceDetailView'
+import { SourceViewer } from '@/components/SourceViewer'
 import { 
   ChevronLeft,
   Save,
@@ -19,7 +25,12 @@ import {
   FileText,
   Target,
   Brain,
-  Clock
+  Clock,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRightClose,
+  PanelRightOpen,
+  X
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
@@ -60,8 +71,75 @@ export default function WorkingDocEditPage() {
   const [isOnline, setIsOnline] = useState(true)
   const [currentModules, setCurrentModules] = useState(docModules)
   const [currentSources, setCurrentSources] = useState(docSources)
+  
+  // Panel collapse state
+  const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false)
+  const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false)
+  
+  // Additional tabs system (like working-studio)
+  const [workingTabs, setWorkingTabs] = useState<WorkingTab[]>([
+    createTab('editor', 'Document Editor', { content }, false)
+  ])
+  const [activeWorkingTabId, setActiveWorkingTabId] = useState(workingTabs[0]?.id || '')
 
   const { success, error } = useEnhancedToast()
+
+  // Tab management handlers
+  const handleWorkingTabChange = (tabId: string) => {
+    setActiveWorkingTabId(tabId)
+  }
+
+  const handleWorkingTabClose = (tabId: string) => {
+    if (workingTabs.length <= 1) return // Don't close the last tab
+    const tabIndex = workingTabs.findIndex(tab => tab.id === tabId)
+    const newTabs = workingTabs.filter(tab => tab.id !== tabId)
+    setWorkingTabs(newTabs)
+    
+    // If we closed the active tab, switch to another one
+    if (activeWorkingTabId === tabId) {
+      const newActiveIndex = Math.max(0, tabIndex - 1)
+      setActiveWorkingTabId(newTabs[newActiveIndex]?.id || newTabs[0]?.id)
+    }
+  }
+
+  const openSecondaryTab = (type: StudioTabType, title: string, data: any) => {
+    // Find any existing secondary tab (everything except editor)
+    const existingSecondaryTab = workingTabs.find(tab => tab.type !== 'editor')
+    
+    if (existingSecondaryTab) {
+      // Replace the existing secondary tab with the new one
+      const newTab = createTab(type, title, data)
+      setWorkingTabs(prev => prev.map(tab => 
+        tab.type !== 'editor' ? newTab : tab
+      ))
+      setActiveWorkingTabId(newTab.id)
+    } else {
+      // Add new secondary tab (only if we don't have one)
+      const newTab = createTab(type, title, data)
+      setWorkingTabs(prev => [...prev, newTab])
+      setActiveWorkingTabId(newTab.id)
+    }
+  }
+
+  const openModuleTab = (module: any) => {
+    openSecondaryTab('module', module.name, module)
+  }
+
+  const openSourceTab = (source: any) => {
+    openSecondaryTab('source', source.title, source)
+  }
+
+  const openModulesGallery = () => {
+    openSecondaryTab('modules-gallery', 'Gallery Of Modules', { modules: currentModules })
+  }
+
+  const openSourcesGallery = () => {
+    openSecondaryTab('sources-gallery', 'Gallery Of Sources', { sources: currentSources })
+  }
+
+  const openSourceViewer = (source: any) => {
+    openSecondaryTab('source-viewer', `View: ${source.title}`, source)
+  }
 
   // Auto-save simulation
   const simulateAutoSave = useCallback(async () => {
@@ -296,65 +374,227 @@ export default function WorkingDocEditPage() {
           </div>
         </div>
 
-        {/* Holy Trinity Layout with Tab Content */}
+        {/* Holy Trinity Layout with Collapsible Panels */}
         <div className="flex-1 overflow-hidden">
           <PanelGroup direction="horizontal" className="h-full">
-            {/* Left Panel - Modules with Add Functionality */}
-            <Panel defaultSize={25} minSize={20} maxSize={35}>
-              <ModulesHubWithAdd
-                className="h-full border-r"
-                modules={currentModules}
-                onModuleClick={(module) => {
-                  success({
-                    title: "Module selected",
-                    description: `${module.name} is now active`,
-                    category: 'system'
-                  })
-                }}
-                onModuleToggle={(moduleId) => {
-                  setCurrentModules(prev => prev.map(m => 
-                    m.id === moduleId ? { ...m, isEnabled: !m.isEnabled } : m
-                  ))
-                  success({
-                    title: "Module toggled",
-                    description: "Module status updated",
-                    category: 'system'
-                  })
-                }}
-                onAddModule={handleAddModule}
-              />
-            </Panel>
-            
-            <PanelResizeHandle className="w-1 bg-border hover:bg-primary/20 transition-colors cursor-col-resize" />
+            {/* Left Panel - Modules (Collapsible) */}
+            {!isLeftPanelCollapsed && (
+              <>
+                <Panel defaultSize={25} minSize={15} maxSize={40}>
+                  <div className="h-full flex flex-col">
+                    <div className="flex items-center justify-between p-2 border-b bg-muted/20">
+                      <span className="text-sm font-medium">Modules</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsLeftPanelCollapsed(true)}
+                        className="h-6 w-6"
+                      >
+                        <PanelLeftClose className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <ModulesHubWithAdd
+                      className="flex-1 border-r"
+                      modules={currentModules}
+                      onModuleClick={(module) => {
+                        openModuleTab(module)
+                        success({
+                          title: "Module selected",
+                          description: `${module.name} opened in new tab`,
+                          category: 'system'
+                        })
+                      }}
+                      onModuleToggle={(moduleId) => {
+                        setCurrentModules(prev => prev.map(m => 
+                          m.id === moduleId ? { ...m, isEnabled: !m.isEnabled } : m
+                        ))
+                        success({
+                          title: "Module toggled",
+                          description: "Module status updated",
+                          category: 'system'
+                        })
+                      }}
+                      onAddModule={handleAddModule}
+                      onOpenGallery={openModulesGallery}
+                    />
+                  </div>
+                </Panel>
+                <PanelResizeHandle className="w-1 bg-border hover:bg-primary/20 transition-colors cursor-col-resize" />
+              </>
+            )}
 
-            {/* Center Panel - Tab Content */}
-            <Panel defaultSize={50} minSize={40}>
-              <ErrorBoundary>
-                {renderTabContent()}
-              </ErrorBoundary>
+            {/* Collapsed Left Panel Button */}
+            {isLeftPanelCollapsed && (
+              <div className="w-10 border-r bg-muted/20 flex flex-col items-center py-2 gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsLeftPanelCollapsed(false)}
+                  className="h-8 w-8"
+                >
+                  <PanelLeftOpen className="h-4 w-4" />
+                </Button>
+                <div className="text-xs text-muted-foreground rotate-90 whitespace-nowrap">
+                  Modules
+                </div>
+              </div>
+            )}
+
+            {/* Center Panel - Working Tabs System */}
+            <Panel 
+              defaultSize={isLeftPanelCollapsed && isRightPanelCollapsed ? 100 : 50} 
+              minSize={30}
+            >
+              <div className="h-full flex flex-col">
+                {/* Working Tabs Navigation */}
+                <div className="border-b bg-background">
+                  <WorkingStudioTabs
+                    tabs={workingTabs}
+                    activeTabId={activeWorkingTabId}
+                    onTabChange={handleWorkingTabChange}
+                    onTabClose={handleWorkingTabClose}
+                    onAiAssistToggle={() => setActiveTab('ai-assistant')}
+                    onQualityCheckToggle={() => setActiveTab('quality-checker')}
+                  >
+                    {(tab) => {
+                      switch (tab.type) {
+                        case 'editor':
+                          return renderTabContent()
+                        case 'modules-gallery':
+                          return (
+                            <ModulesGallery
+                              modules={tab.data?.modules || currentModules}
+                              onModuleClick={openModuleTab}
+                              onModuleToggle={(moduleId) => {
+                                setCurrentModules(prev => prev.map(m => 
+                                  m.id === moduleId ? { ...m, isEnabled: !m.isEnabled } : m
+                                ))
+                              }}
+                            />
+                          )
+                        case 'sources-gallery':
+                          return (
+                            <SourcesGallery
+                              sources={tab.data?.sources || currentSources}
+                              onSourceClick={openSourceTab}
+                              onInsertCitation={(source) => {
+                                setContent(prev => prev + `\n[${source.title}](${source.url})`)
+                                success({
+                                  title: "Citation inserted",
+                                  description: `Added citation from ${source.domain}`,
+                                  category: 'system'
+                                })
+                              }}
+                            />
+                          )
+                        case 'module':
+                          return (
+                            <ModuleDetailView
+                              module={tab.data}
+                              onToggle={() => {
+                                setCurrentModules(prev => prev.map(m => 
+                                  m.id === tab.data?.id ? { ...m, isEnabled: !m.isEnabled } : m
+                                ))
+                              }}
+                              onContentChange={(newContent) => {
+                                setCurrentModules(prev => prev.map(m => 
+                                  m.id === tab.data?.id ? { ...m, content: newContent } : m
+                                ))
+                              }}
+                            />
+                          )
+                        case 'source':
+                          return (
+                            <SourceDetailView
+                              source={tab.data}
+                              onInsertCitation={() => {
+                                setContent(prev => prev + `\n[${tab.data.title}](${tab.data.url})`)
+                                success({
+                                  title: "Citation inserted",
+                                  description: `Added citation from ${tab.data.domain}`,
+                                  category: 'system'
+                                })
+                              }}
+                            />
+                          )
+                        case 'source-viewer':
+                          return (
+                            <SourceViewer
+                              source={tab.data}
+                              onBack={() => handleWorkingTabClose(tab.id)}
+                              onInsertCitation={(source) => {
+                                setContent(prev => prev + `\n[${source.title}](${source.url})`)
+                                success({
+                                  title: "Citation inserted",
+                                  description: `Added citation from ${source.domain}`,
+                                  category: 'system'
+                                })
+                              }}
+                            />
+                          )
+                        default:
+                          return <div className="p-4">Tab content not implemented</div>
+                      }
+                    }}
+                  </WorkingStudioTabs>
+                </div>
+              </div>
             </Panel>
 
-            <PanelResizeHandle className="w-1 bg-border hover:bg-primary/20 transition-colors cursor-col-resize" />
+            {/* Collapsed Right Panel Button */}
+            {isRightPanelCollapsed && (
+              <div className="w-10 border-l bg-muted/20 flex flex-col items-center py-2 gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsRightPanelCollapsed(false)}
+                  className="h-8 w-8"
+                >
+                  <PanelRightOpen className="h-4 w-4" />
+                </Button>
+                <div className="text-xs text-muted-foreground rotate-90 whitespace-nowrap">
+                  Sources
+                </div>
+              </div>
+            )}
 
-            {/* Right Panel - Sources with Add/Search Functionality */}
-            <Panel defaultSize={25} minSize={20} maxSize={35}>
-              <SourcesHubWithAdd
-                className="h-full border-l"
-                sources={currentSources}
-                onInsertCitation={(source) => {
-                  setContent(prev => prev + `\n[${source.title}](${source.url})`)
-                  success({
-                    title: "Citation inserted",
-                    description: `Added citation from ${source.domain}`,
-                    category: 'system'
-                  })
-                }}
-                onSourceClick={(source) => {
-                  console.log('Source clicked:', source)
-                }}
-                onAddSource={handleAddSource}
-              />
-            </Panel>
+            {/* Right Panel - Sources (Collapsible) */}
+            {!isRightPanelCollapsed && (
+              <>
+                <PanelResizeHandle className="w-1 bg-border hover:bg-primary/20 transition-colors cursor-col-resize" />
+                <Panel defaultSize={25} minSize={15} maxSize={40}>
+                  <div className="h-full flex flex-col">
+                    <div className="flex items-center justify-between p-2 border-b bg-muted/20">
+                      <span className="text-sm font-medium">Sources</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsRightPanelCollapsed(true)}
+                        className="h-6 w-6"
+                      >
+                        <PanelRightClose className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <SourcesHubWithAdd
+                      className="flex-1 border-l"
+                      sources={currentSources}
+                      onInsertCitation={(source) => {
+                        setContent(prev => prev + `\n[${source.title}](${source.url})`)
+                        success({
+                          title: "Citation inserted",
+                          description: `Added citation from ${source.domain}`,
+                          category: 'system'
+                        })
+                      }}
+                      onSourceClick={openSourceTab}
+                      onAddSource={handleAddSource}
+                      onOpenGallery={openSourcesGallery}
+                      onOpenViewer={openSourceViewer}
+                    />
+                  </div>
+                </Panel>
+              </>
+            )}
           </PanelGroup>
         </div>
 
