@@ -23,20 +23,23 @@ import {
   Globe,
   Puzzle,
   Terminal,
-  Archive
+  Archive,
+  PenTool
 } from "lucide-react"
 
 const navigation = [
-  // Desk - Top level with sub-items
+  // Desk - Single unified dashboard
   { 
     name: "Desk", 
     href: "/desk", 
-    icon: LayoutDashboard,
-    children: [
-      { name: "Inbound", href: "/desk/inbound", icon: Inbox },
-      { name: "Calendar", href: "/desk/calendar", icon: Calendar },
-      { name: "Time Tracker", href: "/desk/time-tracker", icon: Clock },
-    ]
+    icon: LayoutDashboard
+  },
+  
+  // Working Doc - Holy Trinity layout
+  { 
+    name: "Working Doc", 
+    href: "/working-doc", 
+    icon: PenTool
   },
   
   // Tools - Nav group
