@@ -250,14 +250,6 @@ export default function WorkingDocPage() {
           </div>
         </header>
 
-        {/* Progress Bar */}
-        <div className="border-b px-4 py-2 bg-muted/20">
-          <div className="flex items-center justify-between text-sm mb-1">
-            <span className="text-muted-foreground">Document Progress</span>
-            <span className="font-medium">{Math.round(progress)}% Complete</span>
-          </div>
-          <Progress value={progress} className="h-1" />
-        </div>
 
         {/* Tab Navigation */}
         <div className="border-b">
