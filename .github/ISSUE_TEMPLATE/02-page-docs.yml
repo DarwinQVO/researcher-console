@@ -1,0 +1,148 @@
+name: 📄 Page Documentation
+description: Document a Next.js page or route
+title: "📄 Page: [PAGE_NAME]"
+labels: ["📄 page", "📝 docs", "🔄 needs-review"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 📋 Page Documentation Template
+        Use this template to document any page or route in the application.
+        
+        > **Tip:** Include screenshots or diagrams if helpful!
+
+  - type: input
+    id: page-name
+    attributes:
+      label: 🏷️ Page Name
+      description: What's the name/title of this page?
+      placeholder: "e.g., Working Doc Editor, Sources Hub, Dashboard"
+    validations:
+      required: true
+
+  - type: input
+    id: route-path
+    attributes:
+      label: 🛣️ Route Path
+      description: What's the URL path for this page?
+      placeholder: "e.g., /working-doc/[id]/edit, /desk, /tools/modules"
+    validations:
+      required: true
+
+  - type: input
+    id: file-path
+    attributes:
+      label: 📂 File Path
+      description: Where is the page file located?
+      placeholder: "e.g., /app/(dashboard)/working-doc/[id]/edit/page.tsx"
+    validations:
+      required: true
+
+  - type: textarea
+    id: purpose
+    attributes:
+      label: 🎯 Purpose & Function
+      description: What is this page for? What can users do here?
+      placeholder: "This page allows users to..."
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: main-sections
+    attributes:
+      label: 🗂️ Main Sections
+      description: Break down the different sections or areas of the page
+      placeholder: |
+        ## Header
+        - Navigation back
+        - Save/Export buttons
+        
+        ## Main Content
+        - Editor area
+        - Tabs system
+        
+        ## Sidebar
+        - Sources panel
+        - Modules panel
+      render: markdown
+
+  - type: textarea
+    id: user-actions
+    attributes:
+      label: 👆 User Actions
+      description: What actions can users perform on this page?
+      placeholder: |
+        - ✏️ Edit document content
+        - 💾 Save changes
+        - 📤 Export document
+        - 🔍 View sources
+        - ⚙️ Configure modules
+      render: markdown
+
+  - type: textarea
+    id: components-used
+    attributes:
+      label: 🧩 Components Used
+      description: List the main components used on this page
+      placeholder: "- RichTextEditor\n- SourcesHub\n- ModulesHub\n- WorkingStudioTabs"
+      render: markdown
+
+  - type: dropdown
+    id: user-type
+    attributes:
+      label: 👤 Primary User Type
+      description: Who primarily uses this page?
+      options:
+        - "🔬 Researchers - Main users"
+        - "👥 Collaborators - Team members" 
+        - "👑 Admins - Administrators"
+        - "🌐 Everyone - All user types"
+    validations:
+      required: true
+
+  - type: textarea
+    id: navigation
+    attributes:
+      label: 🧭 Navigation Flow
+      description: How do users get to this page? Where do they go next?
+      placeholder: |
+        **How to reach:**
+        - From dashboard → Working Docs → Select doc → Edit
+        
+        **Where users go next:**
+        - Back to Working Docs list
+        - Export/Share document
+        - Switch to different modules
+      render: markdown
+
+  - type: textarea
+    id: special-features
+    attributes:
+      label: ⭐ Special Features
+      description: Any unique functionality or standout features
+      placeholder: "Real-time collaboration, AI assistance, auto-save, etc."
+      render: markdown
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: 📸 Screenshots/Mockups
+      description: Add screenshots or describe the visual layout
+      placeholder: "Drag and drop images here or describe the layout"
+      render: markdown
+
+  - type: checkboxes
+    id: completion-status
+    attributes:
+      label: ✅ Documentation Status
+      description: Track documentation progress
+      options:
+        - label: "Purpose clearly defined"
+        - label: "Main sections described"
+        - label: "User actions documented"
+        - label: "Components listed"
+        - label: "Navigation flow mapped"
+        - label: "Screenshots added (if applicable)"
+        - label: "Ready for review"

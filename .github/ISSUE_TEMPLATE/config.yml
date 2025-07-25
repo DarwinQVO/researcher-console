@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 🚀 Project Board
+    url: https://github.com/DarwinQVO/researcher-console/projects
+    about: View the project documentation board and progress
+  - name: 📚 Documentation Wiki
+    url: https://github.com/DarwinQVO/researcher-console/wiki
+    about: Browse existing documentation and guides
+  - name: 💬 Discussions
+    url: https://github.com/DarwinQVO/researcher-console/discussions
+    about: Ask questions or discuss ideas with the team

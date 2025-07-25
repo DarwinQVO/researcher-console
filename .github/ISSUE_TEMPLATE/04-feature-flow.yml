@@ -1,0 +1,252 @@
+name: 🌊 Feature Flow Documentation
+description: Document complete user workflows and feature flows
+title: "🌊 Flow: [FEATURE_NAME]"
+labels: ["🌊 flow", "📝 docs", "🔄 needs-review"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 📋 Feature Flow Documentation Template
+        Use this template to document complete user journeys and feature workflows.
+        
+        > **Perfect for:** End-to-end processes, user stories, complex workflows
+
+  - type: input
+    id: feature-name
+    attributes:
+      label: 🏷️ Feature Name
+      description: What feature or workflow are you documenting?
+      placeholder: "e.g., Creating a Working Document, Adding Sources, AI-Assisted Writing"
+    validations:
+      required: true
+
+  - type: textarea
+    id: user-story
+    attributes:
+      label: 👤 User Story
+      description: Describe this from the user's perspective
+      placeholder: |
+        **As a** [type of user]
+        **I want to** [perform some action]
+        **So that** [I can achieve some goal]
+        
+        Example:
+        As a researcher, I want to create a working document so that I can organize my research and collaborate with my team.
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: step-by-step
+    attributes:
+      label: 📋 Step-by-Step Process
+      description: Break down the complete workflow into clear steps
+      placeholder: |
+        ## 🚀 Starting Point
+        User is on the dashboard...
+        
+        ## 📝 Main Steps
+        1. **Navigate to Working Docs**
+           - Click "Working Doc" in sidebar
+           - See list of existing documents
+        
+        2. **Create New Document**
+           - Click "Create New" button
+           - Fill in document details
+           - Click "Create"
+        
+        3. **Set Up Document**
+           - Add modules for structure
+           - Import relevant sources
+           - Configure AI assistance
+        
+        4. **Start Writing**
+           - Use rich text editor
+           - Insert citations from sources
+           - Get AI suggestions
+        
+        ## ✅ End Result
+        User has a fully configured working document ready for research.
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: pages-involved
+    attributes:
+      label: 📄 Pages & Components Involved
+      description: List all the pages, components, and UI elements used in this flow
+      placeholder: |
+        **Pages:**
+        - `/working-doc` - Document list
+        - `/working-doc/[id]/edit` - Document editor
+        
+        **Key Components:**
+        - WorkingDocCard
+        - RichTextEditor
+        - SourcesHub
+        - ModulesHub
+        - AiAssistant
+        
+        **UI Elements:**
+        - Create button
+        - Document form
+        - Citation buttons
+        - AI suggestion panel
+      render: markdown
+
+  - type: textarea
+    id: user-decisions
+    attributes:
+      label: 🤔 User Decisions & Options
+      description: What choices does the user make during this flow?
+      placeholder: |
+        ## Decision Points
+        
+        **Document Type Selection:**
+        - Research report
+        - Interview prep
+        - Analysis document
+        
+        **Module Configuration:**
+        - Which modules to enable
+        - Module-specific settings
+        
+        **Source Integration:**
+        - Manual source addition
+        - Web search for sources
+        - Import from suggestions
+        
+        **AI Assistance Level:**
+        - Full AI suggestions
+        - Minimal assistance
+        - Custom prompts
+      render: markdown
+
+  - type: textarea
+    id: data-flow
+    attributes:
+      label: 📊 Data Flow
+      description: How does data move through the system during this flow?
+      placeholder: |
+        ## Data Creation & Updates
+        
+        1. **Document Creation**
+           ```
+           User Input → Validation → Database → UI Update
+           ```
+        
+        2. **Content Changes**
+           ```
+           Editor Changes → Auto-save → State Update → Real-time Sync
+           ```
+        
+        3. **Source Integration**
+           ```
+           Source URL → Metadata Extraction → Citation Generation → Content Insertion
+           ```
+        
+        ## State Management
+        - Document state in React Context
+        - Sources managed in SourcesHub
+        - Auto-save triggers on content change
+      render: markdown
+
+  - type: textarea
+    id: success-criteria
+    attributes:
+      label: ✅ Success Criteria
+      description: How do we know this flow completed successfully?
+      placeholder: |
+        **User Perspective:**
+        - ✅ Document is created and accessible
+        - ✅ User can edit content smoothly
+        - ✅ Sources are properly integrated
+        - ✅ AI assistance is working
+        - ✅ Changes are being saved
+        
+        **Technical Perspective:**
+        - ✅ Document record in database
+        - ✅ All components loaded without errors
+        - ✅ Real-time features functioning
+        - ✅ Auto-save working properly
+      render: markdown
+
+  - type: textarea
+    id: error-scenarios
+    attributes:
+      label: ❌ Error Scenarios & Recovery
+      description: What can go wrong and how does the system handle it?
+      placeholder: |
+        ## Potential Issues
+        
+        **Network Problems:**
+        - Auto-save fails → Show offline indicator
+        - Source loading fails → Show retry option
+        
+        **User Errors:**
+        - Invalid document name → Show validation message
+        - Duplicate document → Suggest alternatives
+        
+        **System Errors:**
+        - AI service down → Graceful degradation
+        - Database issues → Local storage backup
+        
+        ## Recovery Mechanisms
+        - Automatic retry for network issues
+        - Clear error messages for user actions
+        - Fallback modes for service failures
+      render: markdown
+
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: 📈 Usage Frequency
+      description: How often do users perform this flow?
+      options:
+        - "🔥 Very High - Multiple times per day"
+        - "⭐ High - Daily usage"
+        - "📊 Medium - Weekly usage"
+        - "📋 Low - Occasional usage"
+        - "🔧 Rare - Admin/setup only"
+    validations:
+      required: true
+
+  - type: textarea
+    id: improvements
+    attributes:
+      label: 🚀 Future Improvements
+      description: Ideas for making this flow better
+      placeholder: |
+        **User Experience:**
+        - Faster document creation
+        - Better onboarding flow
+        - More AI integration points
+        
+        **Technical Enhancements:**
+        - Offline-first approach
+        - Better performance optimization
+        - Enhanced collaboration features
+        
+        **Feature Additions:**
+        - Template library
+        - Bulk operations
+        - Advanced sharing options
+      render: markdown
+
+  - type: checkboxes
+    id: completion-status
+    attributes:
+      label: ✅ Documentation Status
+      description: Track documentation completeness
+      options:
+        - label: "User story clearly defined"
+        - label: "Step-by-step process documented"
+        - label: "All pages and components listed"
+        - label: "User decisions mapped out"
+        - label: "Data flow described"
+        - label: "Success criteria defined"
+        - label: "Error scenarios covered"
+        - label: "Future improvements noted"
+        - label: "Ready for review"

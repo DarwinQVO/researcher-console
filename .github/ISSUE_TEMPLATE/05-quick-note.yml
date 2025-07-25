@@ -1,0 +1,81 @@
+name: 📝 Quick Note
+description: Quick notes, observations, or simple documentation
+title: "📝 Note: [BRIEF_DESCRIPTION]"
+labels: ["📝 note", "💭 idea"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 📝 Quick Note Template
+        For quick observations, ideas, or simple documentation that doesn't fit other templates.
+        
+        > **Perfect for:** Quick findings, ideas, reminders, or simple explanations
+
+  - type: textarea
+    id: note-content
+    attributes:
+      label: 💭 Note Content
+      description: What did you want to document?
+      placeholder: |
+        Write your note here. You can include:
+        
+        - 🔍 Observations about the code
+        - 💡 Ideas for improvements  
+        - 📚 Learning notes
+        - 🐛 Minor issues found
+        - 🎯 Quick explanations
+        - 🔗 Useful links or resources
+        
+        Use markdown formatting if you want!
+      render: markdown
+    validations:
+      required: true
+
+  - type: dropdown
+    id: note-type
+    attributes:
+      label: 🏷️ Note Type
+      description: What kind of note is this?
+      options:
+        - "🔍 Observation - Something I noticed"
+        - "💡 Idea - Suggestion or improvement" 
+        - "📚 Learning - Something I figured out"
+        - "🐛 Issue - Small problem or bug"
+        - "🎯 Explanation - How something works"
+        - "🔗 Resource - Useful link or reference"
+        - "❓ Question - Something unclear"
+        - "📋 Todo - Task or reminder"
+
+  - type: input
+    id: related-area
+    attributes:
+      label: 📂 Related Area
+      description: What part of the project is this about? (optional)
+      placeholder: "e.g., SourceViewer, Working Doc, Authentication, etc."
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: ⭐ Priority
+      description: How important is this note?
+      options:
+        - "🔥 High - Important/urgent"
+        - "📊 Medium - Should address soon"
+        - "📝 Low - Nice to know"
+        - "💭 Info - Just for reference"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: follow-up
+    attributes:
+      label: 🎯 Follow-up Actions
+      description: What should happen with this note?
+      options:
+        - label: "Needs discussion with team"
+        - label: "Should create detailed issue"
+        - label: "Requires testing/investigation"
+        - label: "Documentation needed"
+        - label: "Implementation planned"
+        - label: "Just for reference"

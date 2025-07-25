@@ -1,0 +1,123 @@
+name: 📦 Component Documentation
+description: Document a React component in detail
+title: "📦 Component: [COMPONENT_NAME]"
+labels: ["📦 component", "📝 docs", "🔄 needs-review"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 📋 Component Documentation Template
+        Use this template to document any React component in the project.
+        
+        > **Tip:** You can edit this issue anytime to add more details!
+
+  - type: input
+    id: component-name
+    attributes:
+      label: 🏷️ Component Name
+      description: What's the name of the component?
+      placeholder: "e.g., SourceViewer, ModulesHub, WorkingStudioTabs"
+    validations:
+      required: true
+
+  - type: input
+    id: component-path
+    attributes:
+      label: 📂 File Path
+      description: Where is this component located?
+      placeholder: "e.g., /components/SourceViewer.tsx"
+    validations:
+      required: true
+
+  - type: textarea
+    id: purpose
+    attributes:
+      label: 🎯 Purpose & Function
+      description: What does this component do? Why does it exist?
+      placeholder: "This component is responsible for..."
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: key-features
+    attributes:
+      label: ⭐ Key Features
+      description: List the main features and capabilities
+      placeholder: |
+        - Feature 1: Description
+        - Feature 2: Description
+        - Feature 3: Description
+      render: markdown
+
+  - type: textarea
+    id: props-interface
+    attributes:
+      label: 🔧 Props & Interface
+      description: Document the props this component accepts
+      placeholder: |
+        ```typescript
+        interface ComponentProps {
+          prop1: string;
+          prop2?: boolean;
+          onAction: (data: any) => void;
+        }
+        ```
+      render: markdown
+
+  - type: textarea
+    id: usage-examples
+    attributes:
+      label: 📖 Usage Examples
+      description: Show how to use this component
+      placeholder: |
+        ```tsx
+        <Component 
+          prop1="value"
+          onAction={handleAction}
+        />
+        ```
+      render: markdown
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: 🔗 Dependencies
+      description: What other components or libraries does this depend on?
+      placeholder: "- Component A\n- Library B\n- Hook C"
+      render: markdown
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: 📊 Complexity Level
+      description: How complex is this component?
+      options:
+        - "🟢 Simple - Basic functionality"
+        - "🟡 Medium - Multiple features"
+        - "🔴 Complex - Advanced functionality"
+        - "🟣 Critical - Core system component"
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: 📝 Additional Notes
+      description: Any other important information, quirks, or considerations
+      placeholder: "Special behaviors, limitations, future improvements, etc."
+      render: markdown
+
+  - type: checkboxes
+    id: completion-status
+    attributes:
+      label: ✅ Documentation Status
+      description: Track what's been documented
+      options:
+        - label: "Purpose clearly defined"
+        - label: "Features listed"
+        - label: "Props documented"
+        - label: "Usage examples provided"
+        - label: "Dependencies identified"
+        - label: "Ready for review"

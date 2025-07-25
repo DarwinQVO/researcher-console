@@ -1,0 +1,189 @@
+name: ⚙️ System Documentation
+description: Document system architecture, hooks, contexts, or utilities
+title: "⚙️ System: [SYSTEM_NAME]"
+labels: ["⚙️ system", "📝 docs", "🔄 needs-review"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 📋 System Documentation Template
+        Use this template for hooks, contexts, utilities, API routes, or architectural components.
+        
+        > **Great for:** State management, data flow, integrations, utilities
+
+  - type: input
+    id: system-name
+    attributes:
+      label: 🏷️ System Name
+      description: What system/component are you documenting?
+      placeholder: "e.g., SidebarContext, useEnhancedToast, Enterprise Demo System"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: system-type
+    attributes:
+      label: 🏗️ System Type
+      description: What kind of system component is this?
+      options:
+        - "🎣 Hook - Custom React hook"
+        - "📊 Context - React Context Provider"
+        - "🔧 Utility - Helper functions"
+        - "🛣️ API Route - Backend endpoint"
+        - "🏛️ Architecture - System structure"
+        - "🔗 Integration - External service"
+        - "💾 State Management - Data handling"
+        - "🎨 Styling - CSS/Theme system"
+    validations:
+      required: true
+
+  - type: input
+    id: file-paths
+    attributes:
+      label: 📂 File Paths
+      description: Where are the related files located?
+      placeholder: "e.g., /contexts/SidebarContext.tsx, /hooks/useSafeNavigation.ts"
+    validations:
+      required: true
+
+  - type: textarea
+    id: purpose
+    attributes:
+      label: 🎯 Purpose & Responsibility
+      description: What does this system do? Why does it exist?
+      placeholder: "This system manages... It's responsible for..."
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: how-it-works
+    attributes:
+      label: ⚡ How It Works
+      description: Explain the internal mechanics and data flow
+      placeholder: |
+        ## Data Flow
+        1. User action triggers...
+        2. System processes...
+        3. State updates...
+        4. UI reflects changes...
+        
+        ## Key Mechanisms
+        - Uses React hooks for...
+        - Implements pattern for...
+      render: markdown
+
+  - type: textarea
+    id: integration-points
+    attributes:
+      label: 🔗 Integration Points
+      description: How does this connect with other parts of the system?
+      placeholder: |
+        **Used by:**
+        - Component A
+        - Page B
+        - Hook C
+        
+        **Depends on:**
+        - Service X
+        - Context Y
+        - API Z
+      render: markdown
+
+  - type: textarea
+    id: api-interface
+    attributes:
+      label: 🔌 API/Interface
+      description: Document the public interface (functions, props, methods)
+      placeholder: |
+        ```typescript
+        // For hooks
+        const { state, actions } = useSystemHook(options)
+        
+        // For contexts
+        interface ContextValue {
+          data: Type;
+          methods: () => void;
+        }
+        
+        // For utilities
+        function utilityFunction(params: Type): ReturnType
+        ```
+      render: markdown
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: ⚙️ Configuration & Setup
+      description: How to set up, configure, or initialize this system
+      placeholder: |
+        ## Setup Steps
+        1. Import the system
+        2. Configure options
+        3. Initialize if needed
+        
+        ## Configuration Options
+        - Option 1: Description
+        - Option 2: Description
+      render: markdown
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: 📖 Usage Examples
+      description: Provide practical examples of how to use this system
+      placeholder: |
+        ```tsx
+        // Basic usage
+        const example = useSystem({
+          option: 'value'
+        });
+        
+        // Advanced usage
+        const { data, loading, error } = useSystem({
+          advanced: true,
+          onSuccess: handleSuccess
+        });
+        ```
+      render: markdown
+
+  - type: dropdown
+    id: criticality
+    attributes:
+      label: 🚨 System Criticality
+      description: How critical is this system to the application?
+      options:
+        - "🟢 Low - Nice to have"
+        - "🟡 Medium - Important feature"
+        - "🟠 High - Core functionality" 
+        - "🔴 Critical - App won't work without it"
+    validations:
+      required: true
+
+  - type: textarea
+    id: gotchas
+    attributes:
+      label: ⚠️ Gotchas & Considerations
+      description: Important things to know, limitations, or potential issues
+      placeholder: |
+        - ⚠️ Must be used within Provider
+        - 🔄 Causes re-renders when state changes
+        - 🚫 Don't use in server components
+        - 💡 Consider performance implications
+      render: markdown
+
+  - type: checkboxes
+    id: completion-status
+    attributes:
+      label: ✅ Documentation Status
+      description: Track what's been documented
+      options:
+        - label: "Purpose clearly explained"
+        - label: "How it works described"
+        - label: "Integration points mapped"
+        - label: "API/Interface documented"
+        - label: "Setup instructions provided"
+        - label: "Usage examples included"
+        - label: "Gotchas and considerations noted"
+        - label: "Ready for review"
