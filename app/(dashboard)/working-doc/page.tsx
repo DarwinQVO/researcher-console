@@ -1,343 +1,246 @@
 "use client"
 
-import { useState, useCallback, useEffect } from 'react'
-import { useParams } from 'next/navigation'
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { RichTextEditor } from '@/components/RichTextEditor'
-import { QualityChecker } from '@/components/QualityChecker'
-import { AiAssistant } from '@/components/AiAssistant'
-import { ModulesHub } from '@/components/ModulesHub'
-import { SourcesHub } from '@/components/SourcesHub'
-import { SaveStatusIndicator } from '@/components/SaveStatusIndicator'
-import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { 
-  ChevronLeft,
-  Save,
-  Share2,
+  PenTool,
+  Plus,
+  Search,
+  Calendar,
+  Clock,
   FileText,
-  Target,
-  Brain,
-  Clock
+  User,
+  Filter,
+  MoreVertical
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import Link from 'next/link'
-import { useEnhancedToast } from '@/lib/notifications/useEnhancedToast'
 import { 
-  useEnterpriseDemoData,
-  getEnterpriseRequestById, 
-  getEnterpriseWorkingDocByRequestId, 
-  getEnterpriseModulesByDocId, 
-  getEnterpriseSourcesByDocId
-} from '@/lib/demo/enterpriseDemoAdapter'
-import { useEnterpriseDemoStore } from '@/lib/demo/enterpriseDemoState'
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useEnterpriseDemoData } from '@/lib/demo/enterpriseDemoAdapter'
 
-type TabType = 'editor' | 'quality-checker' | 'ai-assistant'
+export default function WorkingDocListPage() {
+  const router = useRouter()
+  const [searchTerm, setSearchTerm] = useState('')
+  const { workingDocs, requests } = useEnterpriseDemoData()
 
-export default function WorkingDocPage() {
-  const params = useParams()
-  const requestId = params.id as string
-  
-  // Get data from enterprise demo
-  const { requests, workingDocs, modules: allModules, sources: allSources } = useEnterpriseDemoData()
-  const { isDemoMode } = useEnterpriseDemoStore()
-  
-  const request = getEnterpriseRequestById(requestId, requests)
-  const workingDoc = getEnterpriseWorkingDocByRequestId(requestId, workingDocs)
-  const docModules = workingDoc ? getEnterpriseModulesByDocId(workingDoc.id, allModules) : []
-  const docSources = workingDoc ? getEnterpriseSourcesByDocId(workingDoc.id, allSources) : []
+  // Filter working docs based on search
+  const filteredDocs = workingDocs.filter(doc => {
+    const request = requests.find(r => r.id === doc.requestId)
+    return (
+      doc.briefMD.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request?.guest.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request?.podcast.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  })
 
-  // State
-  const [activeTab, setActiveTab] = useState<TabType>('editor')
-  const [content, setContent] = useState(workingDoc?.briefMD || '')
-  const [isSaving, setIsSaving] = useState(false)
-  const [lastSaved, setLastSaved] = useState<Date>(new Date())
-  const [wordCount, setWordCount] = useState(0)
-  const [isOnline, setIsOnline] = useState(true)
-  const [approvedModules, setApprovedModules] = useState<string[]>([])
-  const [approvedChannels, setApprovedChannels] = useState<string[]>([])
-
-  const { success, error } = useEnhancedToast()
-
-  // Auto-save simulation
-  const simulateAutoSave = useCallback(async () => {
-    if (!isOnline) return
-    
-    setIsSaving(true)
-    await new Promise(resolve => setTimeout(resolve, 800))
-    setLastSaved(new Date())
-    setIsSaving(false)
-  }, [isOnline])
-
-  // Handle AI suggestion application
-  const handleApplySuggestion = useCallback(async (suggestion: string) => {
-    setContent(prev => prev + '\n\n' + suggestion)
-    
-    setTimeout(() => simulateAutoSave(), 1000)
-    
-    success({
-      title: "AI suggestion applied",
-      description: "Content has been integrated into your document",
-      category: 'system'
-    })
-  }, [simulateAutoSave, success])
-
-  // Handle quality issue resolution
-  const handleResolveFlag = useCallback(async (flagId: string) => {
-    success({
-      title: "Issue resolved",
-      description: "Quality issue has been marked as resolved",
-      category: 'system'
-    })
-  }, [success])
-
-  // Export handler
-  const handleExport = useCallback(async () => {
-    success({
-      title: "Export started",
-      description: "Your document is being prepared for export",
-      category: 'system'
-    })
-  }, [success])
-
-  // Word count tracking
-  useEffect(() => {
-    const words = content.split(/\s+/).filter(word => word.length > 0).length
-    setWordCount(words)
-  }, [content])
-
-  // Auto-save effect
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (content && !isSaving) {
-        simulateAutoSave()
-      }
-    }, 30000)
-
-    return () => clearInterval(interval)
-  }, [content, isSaving, simulateAutoSave])
-
-  const tabs = [
-    { 
-      id: 'editor', 
-      label: 'Editor', 
-      icon: FileText,
-      description: 'Document editing and writing'
-    },
-    { 
-      id: 'quality-checker', 
-      label: 'QualityChecker', 
-      icon: Target,
-      description: 'Content quality analysis'
-    },
-    { 
-      id: 'ai-assistant', 
-      label: 'AiAssistant', 
-      icon: Brain,
-      description: 'AI-powered writing assistance'
-    }
-  ] as const
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'editor':
-        return (
-          <div className="h-full flex flex-col">
-            <div className="border-b px-4 py-3 bg-muted/10">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>Working on:</span>
-                  <Badge variant="outline">
-                    {docModules.find(m => m.status === 'active')?.name || 'Select a module'}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3" />
-                  {wordCount} words
-                </div>
-              </div>
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <RichTextEditor
-                content={content}
-                onChange={setContent}
-              />
-            </div>
-          </div>
-        )
-      
-      case 'quality-checker':
-        return (
-          <QualityChecker
-            workingDocId={workingDoc?.id}
-            content={content}
-            onResolveFlag={handleResolveFlag}
-          />
-        )
-      
-      case 'ai-assistant':
-        return (
-          <AiAssistant
-            currentModule={docModules.find(m => m.status === 'active')}
-            sources={docSources}
-            content={content}
-            onApplySuggestion={handleApplySuggestion}
-          />
-        )
-      
-      default:
-        return <div>Tab not found</div>
-    }
+  const handleCreateNew = () => {
+    // Create new working doc with a generated ID
+    const newId = `doc-${Date.now()}`
+    router.push(`/working-doc/${newId}/edit`)
   }
 
-  // Loading state for demo mode
-  if (!request && isDemoMode) {
-    return (
-      <div className="h-screen flex flex-col bg-background">
-        <header className="border-b px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-8 h-8 bg-muted rounded animate-pulse"></div>
-            <div>
-              <div className="w-32 h-4 bg-muted rounded animate-pulse mb-1"></div>
-              <div className="w-24 h-3 bg-muted rounded animate-pulse"></div>
-            </div>
-          </div>
-        </header>
-        
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Preparing workspace...</p>
-          </div>
-        </main>
-      </div>
-    )
+  const handleOpenDoc = (docId: string) => {
+    router.push(`/working-doc/${docId}/edit`)
+  }
+
+  const getRequestInfo = (requestId: string) => {
+    return requests.find(r => r.id === requestId)
   }
 
   return (
-    <ErrorBoundary>
-      <div className="h-screen flex flex-col bg-background">
-        {/* Header */}
-        <header className="border-b px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/requests">
-              <Button variant="ghost" size="icon">
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-lg font-semibold">{request?.guest || 'Working Document'}</h1>
-              <p className="text-sm text-muted-foreground">
-                Last saved {lastSaved.toLocaleTimeString()}
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={simulateAutoSave} disabled={isSaving}>
-              <Save className="h-4 w-4 mr-2" />
-              {isSaving ? 'Saving...' : 'Save'}
-            </Button>
-            <Button size="sm" onClick={handleExport}>
-              <Share2 className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-          </div>
-        </header>
-
-
-        {/* Tab Navigation */}
-        <div className="border-b">
-          <div className="flex">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as TabType)}
-                className={cn(
-                  "flex items-center gap-2 px-6 py-3 text-sm font-medium border-b-2 transition-colors",
-                  activeTab === tab.id
-                    ? "border-primary text-primary bg-muted/30"
-                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/20"
-                )}
-              >
-                <tab.icon className="h-4 w-4" />
-                {tab.label}
-              </button>
-            ))}
-          </div>
+    <div className="space-y-6 p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            <PenTool className="h-8 w-8" />
+            Working Documents
+          </h1>
+          <p className="text-muted-foreground">Create or continue working on research documents</p>
         </div>
+        <Button onClick={handleCreateNew}>
+          <Plus className="h-4 w-4 mr-2" />
+          New Document
+        </Button>
+      </div>
 
-        {/* Holy Trinity Layout with Tab Content */}
-        <div className="flex-1 overflow-hidden">
-          <PanelGroup direction="horizontal" className="h-full">
-            {/* Left Panel - Modules */}
-            <Panel defaultSize={25} minSize={20} maxSize={35}>
-              <ModulesHub
-                className="h-full border-r"
-                modules={docModules}
-                onModuleClick={(module) => {
-                  // Handle module click
-                  success({
-                    title: "Module selected",
-                    description: `${module.name} is now active`,
-                    category: 'system'
-                  })
-                }}
-                onModuleToggle={(moduleId) => {
-                  // Handle module toggle
-                  success({
-                    title: "Module toggled",
-                    description: "Module status updated",
-                    category: 'system'
-                  })
-                }}
-              />
-            </Panel>
-            
-            <PanelResizeHandle className="w-1 bg-border hover:bg-primary/20 transition-colors cursor-col-resize" />
-
-            {/* Center Panel - Tab Content */}
-            <Panel defaultSize={50} minSize={40}>
-              <ErrorBoundary>
-                {renderTabContent()}
-              </ErrorBoundary>
-            </Panel>
-
-            <PanelResizeHandle className="w-1 bg-border hover:bg-primary/20 transition-colors cursor-col-resize" />
-
-            {/* Right Panel - Sources */}
-            <Panel defaultSize={25} minSize={20} maxSize={35}>
-              <SourcesHub
-                className="h-full border-l"
-                sources={docSources}
-                onInsertCitation={(source) => {
-                  setContent(prev => prev + `\n[${source.title}](${source.url})`)
-                  success({
-                    title: "Citation inserted",
-                    description: `Added citation from ${source.domain}`,
-                    category: 'system'
-                  })
-                }}
-                onSourceClick={(source) => {
-                  // Handle source click
-                  console.log('Source clicked:', source)
-                }}
-              />
-            </Panel>
-          </PanelGroup>
-        </div>
-
-        {/* Save Status Indicator */}
-        <div className="fixed bottom-4 left-4 z-30">
-          <SaveStatusIndicator
-            isSaving={isSaving}
-            lastSaved={lastSaved}
-            isOnline={isOnline}
-            wordCount={wordCount}
+      {/* Search and Filters */}
+      <div className="flex items-center gap-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search documents..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
           />
         </div>
+        <Button variant="outline" size="sm">
+          <Filter className="h-4 w-4 mr-2" />
+          Filters
+        </Button>
       </div>
-    </ErrorBoundary>
+
+      {/* Stats */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{workingDocs.length}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Active</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              {workingDocs.filter(d => {
+                const req = getRequestInfo(d.requestId)
+                return req?.status === 'in_progress'
+              }).length}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Completed</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {workingDocs.filter(d => {
+                const req = getRequestInfo(d.requestId)
+                return req?.status === 'delivered'
+              }).length}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">This Week</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-600">
+              {workingDocs.filter(d => {
+                const weekAgo = new Date()
+                weekAgo.setDate(weekAgo.getDate() - 7)
+                return new Date(d.updatedAt) > weekAgo
+              }).length}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Documents Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {filteredDocs.map((doc) => {
+          const request = getRequestInfo(doc.requestId)
+          const moduleCount = doc.modules?.length || 0
+          const sourceCount = doc.sources?.length || 0
+          
+          return (
+            <Card 
+              key={doc.id} 
+              className="hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => handleOpenDoc(doc.id)}
+            >
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <CardTitle className="text-lg">
+                      {request?.guest || 'Untitled Document'}
+                    </CardTitle>
+                    <CardDescription>
+                      {request?.podcast || 'No podcast assigned'}
+                    </CardDescription>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={(e) => {
+                        e.stopPropagation()
+                        handleOpenDoc(doc.id)
+                      }}>
+                        <PenTool className="h-4 w-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Duplicate
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Brief Preview */}
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {doc.briefMD || 'No content yet...'}
+                  </p>
+
+                  {/* Metadata */}
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <FileText className="h-3 w-3" />
+                      {moduleCount} modules
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Search className="h-3 w-3" />
+                      {sourceCount} sources
+                    </div>
+                  </div>
+
+                  {/* Status and Date */}
+                  <div className="flex items-center justify-between">
+                    <Badge variant={
+                      request?.status === 'delivered' ? 'default' :
+                      request?.status === 'in_progress' ? 'secondary' :
+                      'outline'
+                    }>
+                      {request?.status || 'draft'}
+                    </Badge>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      {new Date(doc.updatedAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
+      </div>
+
+      {/* Empty State */}
+      {filteredDocs.length === 0 && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <PenTool className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">No working documents yet</h3>
+            <p className="text-muted-foreground text-center mb-6">
+              Create your first working document to start organizing your research
+            </p>
+            <Button onClick={handleCreateNew}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create First Document
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   )
 }
