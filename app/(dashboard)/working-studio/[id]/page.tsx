@@ -37,7 +37,6 @@ import { Source, Module, WorkingDoc, SourceType } from '@/models/types'
 import Link from 'next/link'
 import { useEnhancedToast } from '@/lib/notifications/useEnhancedToast'
 import { LoadingState } from '@/components/LoadingStates'
-import { Progress } from '@/components/ui/progress'
 // Removed collaboration features
 import { KeyboardShortcuts, useKeyboardShortcuts } from '@/components/KeyboardShortcuts'
 import { SaveStatusIndicator } from '@/components/SaveStatusIndicator'
@@ -140,7 +139,6 @@ export default function WorkingStudioPage() {
   const [activeTabId, setActiveTabId] = useState(tabs[0]?.id || '')
   const [isSaving, setIsSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date>(new Date())
-  const [progress, setProgress] = useState(75) // Overall completion
   const [isAiProcessing, setIsAiProcessing] = useState(false)
   const [aiProgress, setAiProgress] = useState(0)
   const [wordCount, setWordCount] = useState(0)
@@ -255,10 +253,6 @@ export default function WorkingStudioPage() {
       category: 'system'
     })
 
-    // Update progress
-    if (!module?.isEnabled) {
-      setProgress(prev => Math.min(prev + 5, 100))
-    }
   }, [modules, success])
 
   const handleInsertCitation = useCallback(async (source: Source) => {
@@ -311,8 +305,7 @@ export default function WorkingStudioPage() {
       })
     }, 500)
 
-    // Update progress and trigger save
-    setProgress(prev => Math.min(prev + 3, 100))
+    // Trigger save
     setTimeout(() => simulateAutoSave(), 1500)
   }, [aiNotification, simulateAutoSave])
 
@@ -323,7 +316,6 @@ export default function WorkingStudioPage() {
       category: 'system'
     })
     
-    setProgress(prev => Math.min(prev + 2, 100))
   }, [success])
 
   const handleExport = useCallback(async (options: any) => {
@@ -531,14 +523,6 @@ export default function WorkingStudioPage() {
         </div>
       </header>
 
-      {/* Progress Bar */}
-      <div className="border-b px-4 py-2 bg-muted/20">
-        <div className="flex items-center justify-between text-sm mb-1">
-          <span className="text-muted-foreground">Document Progress</span>
-          <span className="font-medium">{Math.round(progress)}% Complete</span>
-        </div>
-        <Progress value={progress} className="h-1" />
-      </div>
 
       {/* AI Processing Overlay */}
       {isAiProcessing && (
@@ -718,7 +702,7 @@ export default function WorkingStudioPage() {
                 <h4 className="font-medium mb-3 text-sm text-muted-foreground">Quick Notes & Preview</h4>
                 <div className="space-y-3">
                   <div className="text-xs text-muted-foreground">
-                    Word count: {wordCount} | Progress: {Math.round(progress)}%
+                    Word count: {wordCount}
                   </div>
                   <div className="prose prose-sm max-w-none text-sm">
                     <div dangerouslySetInnerHTML={{ __html: content.slice(0, 200) + '...' }} />

@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
 import { RichTextEditor } from '@/components/RichTextEditor'
 import { QualityChecker } from '@/components/QualityChecker'
 import { AiAssistant } from '@/components/AiAssistant'
@@ -54,7 +53,6 @@ export default function WorkingDocPage() {
   const [content, setContent] = useState(workingDoc?.briefMD || '')
   const [isSaving, setIsSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date>(new Date())
-  const [progress, setProgress] = useState(75)
   const [wordCount, setWordCount] = useState(0)
   const [isOnline, setIsOnline] = useState(true)
   const [approvedModules, setApprovedModules] = useState<string[]>([])
@@ -75,7 +73,6 @@ export default function WorkingDocPage() {
   // Handle AI suggestion application
   const handleApplySuggestion = useCallback(async (suggestion: string) => {
     setContent(prev => prev + '\n\n' + suggestion)
-    setProgress(prev => Math.min(prev + 3, 100))
     
     setTimeout(() => simulateAutoSave(), 1000)
     
@@ -93,7 +90,6 @@ export default function WorkingDocPage() {
       description: "Quality issue has been marked as resolved",
       category: 'system'
     })
-    setProgress(prev => Math.min(prev + 2, 100))
   }, [success])
 
   // Export handler
